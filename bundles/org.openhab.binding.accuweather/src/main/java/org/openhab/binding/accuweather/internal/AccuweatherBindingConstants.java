@@ -27,8 +27,9 @@ public class AccuweatherBindingConstants {
     private static final String BINDING_ID = "accuweather";
 
     // List of all Thing Type UIDs
-    public static final ThingTypeUID THING_TYPE_SAMPLE = new ThingTypeUID(BINDING_ID, "sample");
+    private static final String THING_TYPE_BRIDGE = "bridge";
+    public static final ThingTypeUID UID_BRIDGE = new ThingTypeUID(BINDING_ID, THING_TYPE_BRIDGE);
 
     // List of all Channel ids
-    public static final String CHANNEL_1 = "channel1";
+    public static final String CHANNEL_TEMPERATURE = "temperature";
 }

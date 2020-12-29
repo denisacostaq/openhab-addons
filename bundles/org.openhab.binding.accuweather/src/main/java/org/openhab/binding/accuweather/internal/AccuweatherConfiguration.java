@@ -12,15 +12,41 @@
  */
 package org.openhab.binding.accuweather.internal;
 
+import org.apache.commons.lang.StringUtils;
+import org.eclipse.jdt.annotation.NonNullByDefault;
+
 /**
  * The {@link AccuweatherConfiguration} class contains fields mapping thing configuration parameters.
  *
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
+@NonNullByDefault
 public class AccuweatherConfiguration {
 
     /**
-     * Sample configuration parameter. Replace with your own.
+     * API key
      */
-    public String config1;
+    public String apiKey = "";
+
+    /**
+     * eg: us, bg, cu
+     */
+    public String countryCode = "";
+
+    /**
+     * administrative area code relative to the country
+     */
+    public Integer adminCode = 0;
+
+    /**
+     * eg: New York, Sofia, Varna
+     */
+    public String locationName = "";
+
+    @Override
+    public String toString() {
+        return String.format("apiKey: %s, countryCode: %s, adminCode: %d, locationName: %s", "SECRET",
+                StringUtils.isEmpty(countryCode) ? 0 : countryCode, adminCode == 0 ? "Null" : adminCode,
+                StringUtils.isEmpty(locationName) ? "Null" : locationName);
+    }
 }

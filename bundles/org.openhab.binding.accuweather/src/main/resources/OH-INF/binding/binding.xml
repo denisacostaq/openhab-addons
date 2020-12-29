@@ -4,6 +4,7 @@
 	xsi:schemaLocation="https://openhab.org/schemas/binding/v1.0.0 https://openhab.org/schemas/binding-1.0.0.xsd">
 
 	<name>Accuweather Binding</name>
-	<description>This is the binding for Accuweather.</description>
+	<description>This is the binding for Accuweather (local and international weather forecasts)
+		https://www.accuweather.com/.</description>
 
 </binding:binding>
