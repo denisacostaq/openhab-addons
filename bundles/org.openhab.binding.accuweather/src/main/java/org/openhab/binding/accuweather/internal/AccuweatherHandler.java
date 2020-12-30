@@ -19,6 +19,7 @@ import java.io.IOException;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.accuweather.internal.model.pojo.Root;
 import org.openhab.core.io.net.http.HttpUtil;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.ChannelUID;
@@ -30,6 +31,7 @@ import org.openhab.core.types.RefreshType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
 /**
@@ -50,6 +52,7 @@ public class AccuweatherHandler extends BaseBridgeHandler {
     public static final long KEY_VALIDATION_DELAY = 60L;
 
     private final Logger logger = LoggerFactory.getLogger(AccuweatherHandler.class);
+    private final Gson gson = new Gson();
 
     private @Nullable AccuweatherConfiguration config;
 
@@ -97,7 +100,9 @@ public class AccuweatherHandler extends BaseBridgeHandler {
 
         // Example for background initialization:
         scheduler.execute(() -> {
-            if (!StringUtils.isEmpty(getLocationKey())) {
+            String locationKey = getCityKey();
+            if (!StringUtils.isEmpty(locationKey)) {
+                logger.trace("locationKey {}", locationKey);
                 updateStatus(ThingStatus.ONLINE);
             } else {
                 updateStatus(ThingStatus.OFFLINE);
@@ -165,34 +170,52 @@ public class AccuweatherHandler extends BaseBridgeHandler {
 
     /**
      *
-     * @return
+     * @return the city key
      */
-    public String getLocationKey() {
+    public String getCityKey() {
         if (!hasRequiredFields()) {
             return "";
         }
-        logger.debug("Validating API key through getting locations API");
-        String response = null;
+        logger.debug("Validating API key through getting cities API");
         try {
             // Query locations from Accuweather
             String url = LOCATIONS_URL.replace("%COUNTRY_CODE%", countryCode)
                     .replace("%ADMIN_CODE%", adminCode.toString()).replace("%API_KEY%", apiKey)
                     .replace("%LOCATION_NAME%", locationName);
-            // FIXME(denisacostaq@gmail.com): Use the builded url instead
-            url = "http://localhost:8000/City_Search_results_narrowed_by_countryCode_and_adminCode_.json";
             logger.debug(
                     "Bridge: Querying City Search (results narrowed by countryCode and adminCode Accuweather service");
-            response = HttpUtil.executeUrl("GET", url, DEVICES_API_TIMEOUT);
+            String response = HttpUtil.executeUrl("GET", url, DEVICES_API_TIMEOUT);
             logger.trace("Bridge: Response = {}", response);
+            // Got a response so the keys are good
+            Root[] cities = gson.fromJson(response, Root[].class);
+            logger.trace("Bridge: Application and API keys are valid with {} stations", cities.length);
+            if (cities.length > 0) {
+                if (cities.length > 1) {
+                    logger.warn("Expected a single result for locations but got {}", cities.length);
+                }
+                Root city = cities[0];
+                return city.key;
+            }
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.BRIDGE_OFFLINE, "Connecting to service");
+            // Start up the real-time API listener
+            // listener.start(applicationKey, apiKey, gson);
         } catch (IOException e) {
             // executeUrl throws IOException when it gets a Not Authorized (401) response
             logger.debug("Bridge: Got IOException: {}", e.getMessage());
+            setThingOfflineWithCommError(e.getMessage(), "Invalid API or application key");
         } catch (IllegalArgumentException e) {
             logger.debug("Bridge: Got IllegalArgumentException: {}", e.getMessage());
+            setThingOfflineWithCommError(e.getMessage(), "Unable to get devices");
         } catch (JsonSyntaxException e) {
             logger.debug("Bridge: Got JsonSyntaxException: {}", e.getMessage());
+            setThingOfflineWithCommError(e.getMessage(), "Error parsing json response");
         }
-        logger.warn("Unable to get city Key (id)");
-        return "response";
+        logger.warn("Unable to get location Key (id)");
+        return "";
+    }
+
+    public void setThingOfflineWithCommError(@Nullable String errorDetail, @Nullable String statusDescription) {
+        String status = statusDescription != null ? statusDescription : "null";
+        updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.OFFLINE.COMMUNICATION_ERROR, status);
     }
 }
