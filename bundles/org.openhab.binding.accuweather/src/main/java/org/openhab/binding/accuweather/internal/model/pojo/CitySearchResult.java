@@ -13,6 +13,8 @@
 
 package org.openhab.binding.accuweather.internal.model.pojo;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.List;
 
 /**
@@ -21,8 +23,9 @@ import java.util.List;
  * 
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
-public class Root {
+public class CitySearchResult {
     public int version;
+    @SerializedName(value = "Key")
     public String key;
     public String type;
     public int rank;

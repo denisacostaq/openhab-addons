@@ -19,7 +19,7 @@ import java.io.IOException;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.binding.accuweather.internal.model.pojo.Root;
+import org.openhab.binding.accuweather.internal.model.pojo.CitySearchResult;
 import org.openhab.core.io.net.http.HttpUtil;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.ChannelUID;
@@ -187,13 +187,13 @@ public class AccuweatherHandler extends BaseBridgeHandler {
             String response = HttpUtil.executeUrl("GET", url, DEVICES_API_TIMEOUT);
             logger.trace("Bridge: Response = {}", response);
             // Got a response so the keys are good
-            Root[] cities = gson.fromJson(response, Root[].class);
+            CitySearchResult[] cities = gson.fromJson(response, CitySearchResult[].class);
             logger.trace("Bridge: Application and API keys are valid with {} stations", cities.length);
             if (cities.length > 0) {
                 if (cities.length > 1) {
                     logger.warn("Expected a single result for locations but got {}", cities.length);
                 }
-                Root city = cities[0];
+                CitySearchResult city = cities[0];
                 return city.key;
             }
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.BRIDGE_OFFLINE, "Connecting to service");
