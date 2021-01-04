@@ -44,7 +44,7 @@ public class AccuweatherHandlerFactory extends BaseThingHandlerFactory {
 
     // Bridge
     public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Collections
-            .unmodifiableSet(Stream.of(UID_BRIDGE).collect(Collectors.toSet()));
+            .unmodifiableSet(Stream.of(UID_BRIDGE, UID_STATION).collect(Collectors.toSet()));
 
     @Override
     public boolean supportsThingType(ThingTypeUID thingTypeUID) {
@@ -56,6 +56,8 @@ public class AccuweatherHandlerFactory extends BaseThingHandlerFactory {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
         if (UID_BRIDGE.equals(thingTypeUID)) {
             return new AccuweatherHandler((Bridge) thing);
+        } else if (UID_STATION.equals(thingTypeUID)) {
+            return new AccuweatherStationHandler(thing);
         }
         return null;
     }

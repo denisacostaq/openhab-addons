@@ -21,14 +21,12 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.accuweather.internal.model.pojo.CitySearchResult;
 import org.openhab.core.io.net.http.HttpUtil;
-import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.binding.BaseBridgeHandler;
 import org.openhab.core.types.Command;
-import org.openhab.core.types.RefreshType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,18 +66,6 @@ public class AccuweatherHandler extends BaseBridgeHandler {
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-        if (CH_TEMPERATURE.equals(channelUID.getId())) {
-            if (command instanceof RefreshType) {
-                // TODO: handle data refresh
-            }
-
-            // TODO: handle command
-
-            // Note: if communication with thing fails for some reason,
-            // indicate that by setting the status with detail information:
-            // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-            // "Could not control device at IP address x.x.x.x");
-        }
     }
 
     @Override
@@ -105,10 +91,6 @@ public class AccuweatherHandler extends BaseBridgeHandler {
             if (!StringUtils.isEmpty(locationKey)) {
                 logger.trace("locationKey {}", locationKey);
                 updateStatus(ThingStatus.ONLINE);
-                new AccuweatherDataSource(scheduler, "", "", null).start((temp) -> {
-                    updateState(CH_TEMPERATURE, new DecimalType(temp));
-                    logger.warn("temp {}", temp);
-                });
                 // listener.start(applicationKey, apiKey, gson);
             } else {
                 updateStatus(ThingStatus.OFFLINE);

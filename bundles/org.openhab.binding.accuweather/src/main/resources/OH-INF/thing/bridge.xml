@@ -8,9 +8,6 @@
 	<bridge-type id="bridge">
 		<label>Accuweather Account</label>
 		<description>Represents an account at Accuweather (accuweather.com)</description>
-		<channels>
-			<channel id="temperature" typeId="temperature-channel"/>
-		</channels>
 		<config-description-ref uri="thing-type:accuweather:bridge"/>
 	</bridge-type>
 </thing:thing-descriptions>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="accuweather"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+
+	<!-- Accuweather virtual stattion -->
+	<thing-type id="station">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="bridge"/>
+		</supported-bridge-type-refs>
+
+		<label>Virtual Station</label>
+		<description>Accuweather Station</description>
+		<channels>
+			<channel id="temperature" typeId="temperature-channel"/>
+		</channels>
+		<config-description-ref uri="thing-type:accuweather:station"/>
+	</thing-type>
+
+</thing:thing-descriptions>
