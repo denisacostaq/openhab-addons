@@ -13,7 +13,7 @@
 
 package org.openhab.binding.accuweather.internal.util.api.client;
 
-import org.openhab.binding.accuweather.internal.handler.AccuweatherHandler;
+import org.openhab.binding.accuweather.internal.handler.AccuweatherBridgeHandler;
 import org.openhab.binding.accuweather.internal.model.pojo.CitySearchResult;
 import org.openhab.binding.accuweather.internal.model.pojo.CurrentConditions;
 import org.slf4j.Logger;
@@ -23,7 +23,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
 /**
- * The {@link AccuweatherHandler} is responsible for deserializing responses from accuweather.com
+ * The {@link AccuweatherBridgeHandler} is responsible for deserializing responses from accuweather.com
  *
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */

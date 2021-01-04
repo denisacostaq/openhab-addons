@@ -64,7 +64,7 @@ public class AccuweatherHandlerFactory extends BaseThingHandlerFactory {
             Cache cache = new InMemoryCache();
             HttpClient httpClient = new HttpClient();
             AccuweatherStation accuweatherStation = new AccuweatherStation(cache, mapper, httpClient);
-            return new AccuweatherHandler((Bridge) thing, accuweatherStation);
+            return new AccuweatherBridgeHandler((Bridge) thing, accuweatherStation);
         } else if (UID_STATION.equals(thingTypeUID)) {
             return new AccuweatherStationHandler(thing);
         }

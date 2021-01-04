@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link AccuweatherHandler} is responsible for handling commands, which are
+ * The {@link AccuweatherBridgeHandler} is responsible for handling commands, which are
  * sent to one of the channels.
  *
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution

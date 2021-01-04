@@ -27,15 +27,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link AccuweatherHandler} is responsible for handling commands, which are
+ * The {@link AccuweatherBridgeHandler} is responsible for handling commands, which are
  * sent to one of the channels.
  *
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
 @NonNullByDefault
-public class AccuweatherHandler extends BaseBridgeHandler {
+public class AccuweatherBridgeHandler extends BaseBridgeHandler {
 
-    private final Logger logger = LoggerFactory.getLogger(AccuweatherHandler.class);
+    private final Logger logger = LoggerFactory.getLogger(AccuweatherBridgeHandler.class);
 
     private @Nullable AccuweatherConfiguration config;
 
@@ -45,7 +45,7 @@ public class AccuweatherHandler extends BaseBridgeHandler {
     private String locationName = "";
     private AccuweatherStation accuweatherStation;
 
-    public AccuweatherHandler(Bridge bridge, AccuweatherStation accuweatherStation) {
+    public AccuweatherBridgeHandler(Bridge bridge, AccuweatherStation accuweatherStation) {
         super(bridge);
         this.accuweatherStation = accuweatherStation;
     }
