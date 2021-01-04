@@ -52,17 +52,9 @@ public class AccuweatherStationHandler extends BaseThingHandler {
     public void initialize() {
         updateStatus(ThingStatus.UNKNOWN);
         scheduler.execute(() -> {
-            // FIXME(denisacostaq@gmail.com): updateStatus(bridge.getStatus());
-            updateStatus(ThingStatus.ONLINE);
+            updateStatus(getBridge().getStatus());
             new AccuweatherDataSource(scheduler, accuweatherStation).start((temp) -> {
-                logger.warn("temp {}", temp);
-                if (temp == null) {
-                    updateStatus(ThingStatus.OFFLINE);
-                } else {
-                    // TODO(denisacostaq@gmail.com): optimize querying the current status
-                    updateStatus(ThingStatus.ONLINE);
-                    updateState(CH_TEMPERATURE, new DecimalType(temp));
-                }
+                setTemperature(temp);
             });
         });
     }
@@ -71,7 +63,9 @@ public class AccuweatherStationHandler extends BaseThingHandler {
     public void handleCommand(ChannelUID channelUID, Command command) {
         if (CH_TEMPERATURE.equals(channelUID.getId())) {
             if (command instanceof RefreshType) {
+                logger.warn("if (command instanceof RefreshType) {");
                 // TODO: handle data refresh
+                setTemperature(accuweatherStation.getTemperature());
             }
 
             // TODO: handle command
@@ -80,6 +74,16 @@ public class AccuweatherStationHandler extends BaseThingHandler {
             // indicate that by setting the status with detail information:
             // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
             // "Could not control device at IP address x.x.x.x");
+        }
+    }
+
+    private void setTemperature(Float temp) {
+        if (temp == null) {
+            updateStatus(ThingStatus.OFFLINE);
+        } else {
+            // TODO(denisacostaq@gmail.com): optimize querying the current status
+            updateStatus(ThingStatus.ONLINE);
+            updateState(CH_TEMPERATURE, new DecimalType(temp));
         }
     }
 

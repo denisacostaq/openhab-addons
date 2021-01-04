@@ -16,10 +16,10 @@ package org.openhab.binding.accuweather.internal.util.api;
 import java.util.Date;
 
 import org.apache.commons.lang.StringUtils;
-import org.openhab.binding.accuweather.internal.util.api.client.HttpClient;
-import org.openhab.binding.accuweather.internal.util.api.client.ObjectMapper;
 import org.openhab.binding.accuweather.internal.interfaces.Cache;
 import org.openhab.binding.accuweather.internal.interfaces.WeatherStation;
+import org.openhab.binding.accuweather.internal.util.api.client.HttpClient;
+import org.openhab.binding.accuweather.internal.util.api.client.ObjectMapper;
 
 /**
  * The {@link AccuweatherStation} is the WeatherStation implementation for https://www.accuweather.com/
@@ -40,7 +40,7 @@ public class AccuweatherStation implements WeatherStation {
     }
 
     @Override
-    public float getTemperature() {
+    public Float getTemperature() {
         Float temp = (Float) cache.getValue(TEMPEATURE_KEY);
         if (temp == null) {
             String json = httpClient.getCurrentConditions();
@@ -51,8 +51,8 @@ public class AccuweatherStation implements WeatherStation {
     }
 
     @Override
-    public float getHumidity() {
-        return 0;
+    public Float getHumidity() {
+        return null;
     }
 
     @Override

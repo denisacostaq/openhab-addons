@@ -25,12 +25,12 @@ public interface WeatherStation {
      * @return the temperature in the station
      */
     // FIXME(denisacostaq@gmail.com): should include scale, like for example celcious, fahrenheit
-    float getTemperature();
+    Float getTemperature();
 
     /**
      * @return the humidity in the station
      */
-    float getHumidity();
+    Float getHumidity();
 
     /**
      * @return the current time in the station

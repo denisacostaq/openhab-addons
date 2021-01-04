@@ -57,24 +57,10 @@ public class AccuweatherBridgeHandler extends BaseBridgeHandler {
     @Override
     public void initialize() {
         config = getConfigAs(AccuweatherConfiguration.class);
-
-        // TODO: Initialize the handler.
-        // The framework requires you to return from this method quickly. Also, before leaving this method a thing
-        // status from one of ONLINE, OFFLINE or UNKNOWN must be set. This might already be the real thing status in
-        // case you can decide it directly.
-        // In case you can not decide the thing status directly (e.g. for long running connection handshake using WAN
-        // access or similar) you should set status UNKNOWN here and then decide the real status asynchronously in the
-        // background.
-
-        // set the thing status to UNKNOWN temporarily and let the background task decide for the real status.
-        // the framework is then able to reuse the resources from the thing handler initialization.
-        // we set this upfront to reliably check status updates in unit tests.
         updateStatus(ThingStatus.UNKNOWN);
-
-        // Example for background initialization:
         scheduler.execute(() -> {
             if (!hasRequiredFields()) {
-                updateStatus(ThingStatus.OFFLINE);
+                setThingOfflineWithConfError("some required config fields are missing");
                 return;
             }
             accuweatherStation.setHttpApiKey(apiKey);
@@ -84,20 +70,9 @@ public class AccuweatherBridgeHandler extends BaseBridgeHandler {
             if (accuweatherStation.resolveHttpCityKey()) {
                 updateStatus(ThingStatus.ONLINE);
             } else {
-                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR);
+                setThingOfflineWithCommError("unable to get city key for the configured parameters");
             }
         });
-
-        // These logging types should be primarily used by bindings
-        // logger.trace("Example trace message");
-        // logger.debug("Example debug message");
-        // logger.warn("Example warn message");
-
-        // Note: When initialization can NOT be done set the status with more details for further
-        // analysis. See also class ThingStatusDetail for all available status details.
-        // Add a description to give user information to understand why thing does not work as expected. E.g.
-        // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
-        // "Can not access device as username and/or password are invalid");
     }
 
     @Override
@@ -156,8 +131,13 @@ public class AccuweatherBridgeHandler extends BaseBridgeHandler {
         return true;
     }
 
-    public void setThingOfflineWithCommError(@Nullable String errorDetail, @Nullable String statusDescription) {
+    public void setThingOfflineWithCommError(@Nullable String statusDescription) {
         String status = statusDescription != null ? statusDescription : "null";
         updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.OFFLINE.COMMUNICATION_ERROR, status);
+    }
+
+    public void setThingOfflineWithConfError(@Nullable String statusDescription) {
+        String status = statusDescription != null ? statusDescription : "null";
+        updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.OFFLINE.CONFIGURATION_ERROR, status);
     }
 }

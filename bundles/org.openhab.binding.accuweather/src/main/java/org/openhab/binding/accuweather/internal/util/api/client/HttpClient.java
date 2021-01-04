@@ -81,7 +81,6 @@ public class HttpClient {
             // Query locations from Accuweather
             String url = CURRENT_CONDITIONS_URL.replace("%CITY_KEY%", cityKey).replace("%API_KEY%", apiKey);
             // FIXME(denisacostaq@gmail.com): Use the builded url instead
-            logger.warn("url {}", url);
             url = "http://localhost:8000/Current_Conditions.json";
             logger.debug(
                     "Bridge: Querying City Search (results narrowed by countryCode and adminCode Accuweather service");
