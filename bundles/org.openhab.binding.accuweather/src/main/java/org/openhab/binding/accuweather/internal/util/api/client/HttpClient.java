@@ -11,7 +11,7 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-package org.openhab.binding.accuweather.internal.api.client;
+package org.openhab.binding.accuweather.internal.util.api.client;
 
 import java.io.IOException;
 

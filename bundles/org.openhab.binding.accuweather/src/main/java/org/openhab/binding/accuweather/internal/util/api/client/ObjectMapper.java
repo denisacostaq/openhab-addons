@@ -11,9 +11,9 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-package org.openhab.binding.accuweather.internal.api.client;
+package org.openhab.binding.accuweather.internal.util.api.client;
 
-import org.openhab.binding.accuweather.internal.AccuweatherHandler;
+import org.openhab.binding.accuweather.internal.handler.AccuweatherHandler;
 import org.openhab.binding.accuweather.internal.model.pojo.CitySearchResult;
 import org.openhab.binding.accuweather.internal.model.pojo.CurrentConditions;
 import org.slf4j.Logger;

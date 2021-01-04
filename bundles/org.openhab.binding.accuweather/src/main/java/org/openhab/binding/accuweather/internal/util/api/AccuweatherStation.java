@@ -11,13 +11,13 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-package org.openhab.binding.accuweather.internal.api;
+package org.openhab.binding.accuweather.internal.util.api;
 
 import java.util.Date;
 
 import org.apache.commons.lang.StringUtils;
-import org.openhab.binding.accuweather.internal.api.client.HttpClient;
-import org.openhab.binding.accuweather.internal.api.client.ObjectMapper;
+import org.openhab.binding.accuweather.internal.util.api.client.HttpClient;
+import org.openhab.binding.accuweather.internal.util.api.client.ObjectMapper;
 import org.openhab.binding.accuweather.internal.interfaces.Cache;
 import org.openhab.binding.accuweather.internal.interfaces.WeatherStation;
 

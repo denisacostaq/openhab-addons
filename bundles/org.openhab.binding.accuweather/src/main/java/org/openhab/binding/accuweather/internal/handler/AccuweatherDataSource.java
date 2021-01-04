@@ -10,13 +10,13 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.accuweather.internal;
+package org.openhab.binding.accuweather.internal.handler;
 
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import org.openhab.binding.accuweather.internal.api.AccuweatherStation;
+import org.openhab.binding.accuweather.internal.util.api.AccuweatherStation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

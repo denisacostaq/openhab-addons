@@ -11,13 +11,13 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-package org.openhab.binding.accuweather.internal;
+package org.openhab.binding.accuweather.internal.handler;
 
 import static org.openhab.binding.accuweather.internal.AccuweatherBindingConstants.CH_TEMPERATURE;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.binding.accuweather.internal.api.AccuweatherStation;
+import org.openhab.binding.accuweather.internal.util.api.AccuweatherStation;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;

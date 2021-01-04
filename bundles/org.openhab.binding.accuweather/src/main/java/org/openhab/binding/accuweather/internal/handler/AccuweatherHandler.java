@@ -10,14 +10,15 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.accuweather.internal;
+package org.openhab.binding.accuweather.internal.handler;
 
 import static org.openhab.binding.accuweather.internal.AccuweatherBindingConstants.UID_STATION;
 
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.binding.accuweather.internal.api.AccuweatherStation;
+import org.openhab.binding.accuweather.internal.config.AccuweatherConfiguration;
+import org.openhab.binding.accuweather.internal.util.api.AccuweatherStation;
 import org.openhab.core.thing.*;
 import org.openhab.core.thing.binding.BaseBridgeHandler;
 import org.openhab.core.thing.binding.ThingHandler;
