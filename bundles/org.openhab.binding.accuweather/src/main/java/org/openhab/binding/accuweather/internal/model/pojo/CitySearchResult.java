@@ -13,9 +13,9 @@
 
 package org.openhab.binding.accuweather.internal.model.pojo;
 
-import com.google.gson.annotations.SerializedName;
-
 import java.util.List;
+
+import com.google.gson.annotations.SerializedName;
 
 /**
  * The {@link CitySearchResult} is used to map the json response from accuwater

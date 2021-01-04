@@ -21,6 +21,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.accuweather.internal.model.pojo.CitySearchResult;
 import org.openhab.core.io.net.http.HttpUtil;
+import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.ThingStatus;
@@ -67,7 +68,7 @@ public class AccuweatherHandler extends BaseBridgeHandler {
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-        if (CHANNEL_TEMPERATURE.equals(channelUID.getId())) {
+        if (CH_TEMPERATURE.equals(channelUID.getId())) {
             if (command instanceof RefreshType) {
                 // TODO: handle data refresh
             }
@@ -104,6 +105,11 @@ public class AccuweatherHandler extends BaseBridgeHandler {
             if (!StringUtils.isEmpty(locationKey)) {
                 logger.trace("locationKey {}", locationKey);
                 updateStatus(ThingStatus.ONLINE);
+                new AccuweatherDataSource(scheduler, "", "", null).start((temp) -> {
+                    updateState(CH_TEMPERATURE, new DecimalType(temp));
+                    logger.warn("temp {}", temp);
+                });
+                // listener.start(applicationKey, apiKey, gson);
             } else {
                 updateStatus(ThingStatus.OFFLINE);
             }
@@ -182,13 +188,15 @@ public class AccuweatherHandler extends BaseBridgeHandler {
             String url = LOCATIONS_URL.replace("%COUNTRY_CODE%", countryCode)
                     .replace("%ADMIN_CODE%", adminCode.toString()).replace("%API_KEY%", apiKey)
                     .replace("%LOCATION_NAME%", locationName);
+            // FIXME(denisacostaq@gmail.com): Use the builded url instead
+            url = "http://localhost:8000/City_Search_results_narrowed_by_countryCode_and_adminCode_.json";
             logger.debug(
                     "Bridge: Querying City Search (results narrowed by countryCode and adminCode Accuweather service");
             String response = HttpUtil.executeUrl("GET", url, DEVICES_API_TIMEOUT);
             logger.trace("Bridge: Response = {}", response);
             // Got a response so the keys are good
             CitySearchResult[] cities = gson.fromJson(response, CitySearchResult[].class);
-            logger.trace("Bridge: Application and API keys are valid with {} stations", cities.length);
+            logger.trace("Bridge: API key is valid with");
             if (cities.length > 0) {
                 if (cities.length > 1) {
                     logger.warn("Expected a single result for locations but got {}", cities.length);
@@ -196,19 +204,19 @@ public class AccuweatherHandler extends BaseBridgeHandler {
                 CitySearchResult city = cities[0];
                 return city.key;
             }
-            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.BRIDGE_OFFLINE, "Connecting to service");
-            // Start up the real-time API listener
-            // listener.start(applicationKey, apiKey, gson);
         } catch (IOException e) {
             // executeUrl throws IOException when it gets a Not Authorized (401) response
             logger.debug("Bridge: Got IOException: {}", e.getMessage());
             setThingOfflineWithCommError(e.getMessage(), "Invalid API or application key");
+            // rescheduleValidateKeysJob();
         } catch (IllegalArgumentException e) {
             logger.debug("Bridge: Got IllegalArgumentException: {}", e.getMessage());
             setThingOfflineWithCommError(e.getMessage(), "Unable to get devices");
+            // rescheduleValidateKeysJob();
         } catch (JsonSyntaxException e) {
             logger.debug("Bridge: Got JsonSyntaxException: {}", e.getMessage());
             setThingOfflineWithCommError(e.getMessage(), "Error parsing json response");
+            // rescheduleValidateKeysJob();
         }
         logger.warn("Unable to get location Key (id)");
         return "";
