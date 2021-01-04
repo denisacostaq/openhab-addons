@@ -12,26 +12,18 @@
  */
 package org.openhab.binding.accuweather.internal;
 
-import static org.openhab.binding.accuweather.internal.AccuweatherBindingConstants.*;
-
-import java.io.IOException;
+import static org.openhab.binding.accuweather.internal.AccuweatherBindingConstants.UID_STATION;
 
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.binding.accuweather.internal.model.pojo.CitySearchResult;
-import org.openhab.core.io.net.http.HttpUtil;
-import org.openhab.core.thing.Bridge;
-import org.openhab.core.thing.ChannelUID;
-import org.openhab.core.thing.ThingStatus;
-import org.openhab.core.thing.ThingStatusDetail;
+import org.openhab.binding.accuweather.internal.api.AccuweatherStation;
+import org.openhab.core.thing.*;
 import org.openhab.core.thing.binding.BaseBridgeHandler;
+import org.openhab.core.thing.binding.ThingHandler;
 import org.openhab.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 
 /**
  * The {@link AccuweatherHandler} is responsible for handling commands, which are
@@ -41,17 +33,8 @@ import com.google.gson.JsonSyntaxException;
  */
 @NonNullByDefault
 public class AccuweatherHandler extends BaseBridgeHandler {
-    // URL to retrieve device list from Ambient Weather
-    private static final String LOCATIONS_URL = "http://dataservice.accuweather.com/locations/v1/cities/%COUNTRY_CODE%/%ADMIN_CODE%/search?apikey=%API_KEY%&q=%LOCATION_NAME%";
-
-    // Timeout of the call to the Ambient Weather devices API
-    public static final int DEVICES_API_TIMEOUT = 20000;
-
-    // Time to wait after failed key validation
-    public static final long KEY_VALIDATION_DELAY = 60L;
 
     private final Logger logger = LoggerFactory.getLogger(AccuweatherHandler.class);
-    private final Gson gson = new Gson();
 
     private @Nullable AccuweatherConfiguration config;
 
@@ -59,9 +42,11 @@ public class AccuweatherHandler extends BaseBridgeHandler {
     private String countryCode = "";
     private Integer adminCode = 0;
     private String locationName = "";
+    private AccuweatherStation accuweatherStation;
 
-    public AccuweatherHandler(Bridge bridge) {
+    public AccuweatherHandler(Bridge bridge, AccuweatherStation accuweatherStation) {
         super(bridge);
+        this.accuweatherStation = accuweatherStation;
     }
 
     @Override
@@ -87,13 +72,18 @@ public class AccuweatherHandler extends BaseBridgeHandler {
 
         // Example for background initialization:
         scheduler.execute(() -> {
-            String locationKey = getCityKey();
-            if (!StringUtils.isEmpty(locationKey)) {
-                logger.trace("locationKey {}", locationKey);
-                updateStatus(ThingStatus.ONLINE);
-                // listener.start(applicationKey, apiKey, gson);
-            } else {
+            if (!hasRequiredFields()) {
                 updateStatus(ThingStatus.OFFLINE);
+                return;
+            }
+            accuweatherStation.setHttpApiKey(apiKey);
+            accuweatherStation.setHttpCountryCode(countryCode);
+            accuweatherStation.setHttpAdminCode(adminCode);
+            accuweatherStation.setLocationName(locationName);
+            if (accuweatherStation.resolveHttpCityKey()) {
+                updateStatus(ThingStatus.ONLINE);
+            } else {
+                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR);
             }
         });
 
@@ -107,6 +97,15 @@ public class AccuweatherHandler extends BaseBridgeHandler {
         // Add a description to give user information to understand why thing does not work as expected. E.g.
         // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
         // "Can not access device as username and/or password are invalid");
+    }
+
+    @Override
+    public void childHandlerInitialized(ThingHandler childHandler, Thing childThing) {
+        super.childHandlerInitialized(childHandler, childThing);
+        if (UID_STATION.equals(childThing.getThingTypeUID())) {
+            AccuweatherStationHandler accuweatherStationHandler = (AccuweatherStationHandler) childHandler;
+            accuweatherStationHandler.setAccuweatherStation(accuweatherStation);
+        }
     }
 
     private boolean hasRequiredFields() {
@@ -154,54 +153,6 @@ public class AccuweatherHandler extends BaseBridgeHandler {
         }
         locationName = configLocationName;
         return true;
-    }
-
-    /**
-     *
-     * @return the city key
-     */
-    public String getCityKey() {
-        if (!hasRequiredFields()) {
-            return "";
-        }
-        logger.debug("Validating API key through getting cities API");
-        try {
-            // Query locations from Accuweather
-            String url = LOCATIONS_URL.replace("%COUNTRY_CODE%", countryCode)
-                    .replace("%ADMIN_CODE%", adminCode.toString()).replace("%API_KEY%", apiKey)
-                    .replace("%LOCATION_NAME%", locationName);
-            // FIXME(denisacostaq@gmail.com): Use the builded url instead
-            url = "http://localhost:8000/City_Search_results_narrowed_by_countryCode_and_adminCode_.json";
-            logger.debug(
-                    "Bridge: Querying City Search (results narrowed by countryCode and adminCode Accuweather service");
-            String response = HttpUtil.executeUrl("GET", url, DEVICES_API_TIMEOUT);
-            logger.trace("Bridge: Response = {}", response);
-            // Got a response so the keys are good
-            CitySearchResult[] cities = gson.fromJson(response, CitySearchResult[].class);
-            logger.trace("Bridge: API key is valid with");
-            if (cities.length > 0) {
-                if (cities.length > 1) {
-                    logger.warn("Expected a single result for locations but got {}", cities.length);
-                }
-                CitySearchResult city = cities[0];
-                return city.key;
-            }
-        } catch (IOException e) {
-            // executeUrl throws IOException when it gets a Not Authorized (401) response
-            logger.debug("Bridge: Got IOException: {}", e.getMessage());
-            setThingOfflineWithCommError(e.getMessage(), "Invalid API or application key");
-            // rescheduleValidateKeysJob();
-        } catch (IllegalArgumentException e) {
-            logger.debug("Bridge: Got IllegalArgumentException: {}", e.getMessage());
-            setThingOfflineWithCommError(e.getMessage(), "Unable to get devices");
-            // rescheduleValidateKeysJob();
-        } catch (JsonSyntaxException e) {
-            logger.debug("Bridge: Got JsonSyntaxException: {}", e.getMessage());
-            setThingOfflineWithCommError(e.getMessage(), "Error parsing json response");
-            // rescheduleValidateKeysJob();
-        }
-        logger.warn("Unable to get location Key (id)");
-        return "";
     }
 
     public void setThingOfflineWithCommError(@Nullable String errorDetail, @Nullable String statusDescription) {
