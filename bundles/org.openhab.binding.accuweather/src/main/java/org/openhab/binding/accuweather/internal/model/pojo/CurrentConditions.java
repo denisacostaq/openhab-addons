@@ -13,16 +13,25 @@
 
 package org.openhab.binding.accuweather.internal.model.pojo;
 
+import java.util.Date;
+
 import com.google.gson.annotations.SerializedName;
 
 /**
- * The {@link Metric} is used to map the json response from accuwater
+ * The {@link CurrentConditions} is used to map the json response from accuwater
  *
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
-public class Metric {
-    @SerializedName(value = "Value")
-    public double value;
-    public String unit;
-    public int unitType;
+public class CurrentConditions {
+    public Date localObservationDateTime;
+    public int epochTime;
+    public String weatherText;
+    public int weatherIcon;
+    public boolean hasPrecipitation;
+    public Object precipitationType;
+    public boolean isDayTime;
+    @SerializedName(value = "Temperature")
+    public Temperature temperature;
+    public String mobileLink;
+    public String link;
 }

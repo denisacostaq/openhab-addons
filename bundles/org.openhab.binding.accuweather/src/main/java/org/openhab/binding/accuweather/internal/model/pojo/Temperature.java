@@ -16,13 +16,12 @@ package org.openhab.binding.accuweather.internal.model.pojo;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * The {@link Metric} is used to map the json response from accuwater
+ * The {@link Temperature} is used to map the json response from accuwater
  *
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
-public class Metric {
-    @SerializedName(value = "Value")
-    public double value;
-    public String unit;
-    public int unitType;
+public class Temperature {
+    @SerializedName(value = "Metric")
+    public Metric metric;
+    public Imperial imperial;
 }

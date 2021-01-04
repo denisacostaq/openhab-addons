@@ -57,7 +57,7 @@ public class AccuweatherHandlerFactory extends BaseThingHandlerFactory {
         if (UID_BRIDGE.equals(thingTypeUID)) {
             return new AccuweatherHandler((Bridge) thing);
         } else if (UID_STATION.equals(thingTypeUID)) {
-            return new AccuweatherStationHandler(thing);
+            return new AccuweatherStationHandler(thing, "", "");
         }
         return null;
     }
