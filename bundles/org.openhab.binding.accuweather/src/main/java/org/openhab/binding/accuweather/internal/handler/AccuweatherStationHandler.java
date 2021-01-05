@@ -15,6 +15,8 @@ package org.openhab.binding.accuweather.internal.handler;
 
 import static org.openhab.binding.accuweather.internal.AccuweatherBindingConstants.CH_TEMPERATURE;
 
+import java.util.concurrent.ScheduledFuture;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.accuweather.internal.util.api.AccuweatherStation;
@@ -38,6 +40,7 @@ import org.slf4j.LoggerFactory;
 public class AccuweatherStationHandler extends BaseThingHandler {
     private final Logger logger = LoggerFactory.getLogger(AccuweatherStationHandler.class);
     private @Nullable AccuweatherStation accuweatherStation;
+    private @Nullable ScheduledFuture<?> poolingJob;
 
     /**
      * Creates a new instance of this class for the {@link Thing}.
@@ -53,10 +56,16 @@ public class AccuweatherStationHandler extends BaseThingHandler {
         updateStatus(ThingStatus.UNKNOWN);
         scheduler.execute(() -> {
             updateStatus(getBridge().getStatus());
-            new AccuweatherDataSource(scheduler, accuweatherStation).start((temp) -> {
+            poolingJob = new AccuweatherDataSource(scheduler, accuweatherStation).start((temp) -> {
                 setTemperature(temp);
             });
         });
+    }
+
+    @Override
+    public void dispose() {
+        super.dispose();
+        this.poolingJob.cancel(true);
     }
 
     @Override
