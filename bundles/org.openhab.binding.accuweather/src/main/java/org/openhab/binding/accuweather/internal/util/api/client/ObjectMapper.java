@@ -31,7 +31,7 @@ public class ObjectMapper {
     private final Logger logger = LoggerFactory.getLogger(ObjectMapper.class);
     private final Gson gson = new Gson();
 
-    private CitySearchResult deserializeCitySearchResult(String json) {
+    public CitySearchResult deserializeCitySearchResult(String json) {
         try {
             CitySearchResult[] cities = gson.fromJson(json, CitySearchResult[].class);
             logger.trace("Bridge: API key is valid with");
@@ -50,7 +50,7 @@ public class ObjectMapper {
         return null;
     }
 
-    private CurrentConditions deserializeCurrentConditions(String json) {
+    public CurrentConditions deserializeCurrentConditions(String json) {
         try {
             CurrentConditions[] currentConditions = gson.fromJson(json, CurrentConditions[].class);
             logger.trace("Bridge: API key is valid with");

@@ -74,7 +74,7 @@ public class AccuweatherStationHandler extends BaseThingHandler {
             if (command instanceof RefreshType) {
                 logger.warn("if (command instanceof RefreshType) {");
                 // TODO: handle data refresh
-                setTemperature(accuweatherStation.getTemperature());
+                // setTemperature(accuweatherStation.getTemperature());
             }
 
             // TODO: handle command

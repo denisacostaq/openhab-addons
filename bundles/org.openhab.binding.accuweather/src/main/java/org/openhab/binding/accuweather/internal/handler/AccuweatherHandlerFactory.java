@@ -23,6 +23,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.accuweather.internal.interfaces.Cache;
 import org.openhab.binding.accuweather.internal.util.api.AccuweatherStation;
+import org.openhab.binding.accuweather.internal.util.api.client.AccuweatherHttpApiClient;
 import org.openhab.binding.accuweather.internal.util.api.client.HttpClient;
 import org.openhab.binding.accuweather.internal.util.api.client.ObjectMapper;
 import org.openhab.binding.accuweather.internal.util.cache.InMemoryCache;
@@ -63,7 +64,8 @@ public class AccuweatherHandlerFactory extends BaseThingHandlerFactory {
             ObjectMapper mapper = new ObjectMapper();
             Cache cache = new InMemoryCache();
             HttpClient httpClient = new HttpClient();
-            AccuweatherStation accuweatherStation = new AccuweatherStation(cache, mapper, httpClient);
+            AccuweatherHttpApiClient httpApiClient = new AccuweatherHttpApiClient(httpClient, mapper, cache);
+            AccuweatherStation accuweatherStation = new AccuweatherStation(httpApiClient);
             return new AccuweatherBridgeHandler((Bridge) thing, accuweatherStation);
         } else if (UID_STATION.equals(thingTypeUID)) {
             return new AccuweatherStationHandler(thing);

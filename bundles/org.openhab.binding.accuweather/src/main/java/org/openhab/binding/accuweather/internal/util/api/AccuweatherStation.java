@@ -14,71 +14,90 @@
 package org.openhab.binding.accuweather.internal.util.api;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 
 import org.apache.commons.lang.StringUtils;
-import org.openhab.binding.accuweather.internal.interfaces.Cache;
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiClient;
 import org.openhab.binding.accuweather.internal.interfaces.WeatherStation;
-import org.openhab.binding.accuweather.internal.util.api.client.HttpClient;
-import org.openhab.binding.accuweather.internal.util.api.client.ObjectMapper;
+import org.openhab.binding.accuweather.internal.model.pojo.AdministrativeArea;
+import org.openhab.binding.accuweather.internal.model.pojo.CitySearchResult;
+import org.openhab.binding.accuweather.internal.model.pojo.CurrentConditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The {@link AccuweatherStation} is the WeatherStation implementation for https://www.accuweather.com/
  *
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
+@NonNullByDefault
 public class AccuweatherStation implements WeatherStation {
-    private static final String TEMPEATURE_KEY = "11ba66f6-7e84-424e-97e8-f362756d4ed4";
-    private static final String HAS_PRESIPITACION_KEY = "ae781ae5-618d-4c6b-b6f2-f064b8706a26";
-    private Cache cache;
-    private ObjectMapper mapper;
-    private HttpClient httpClient;
+    Logger logger = LoggerFactory.getLogger(AccuweatherStation.class);
+    private AccuweatherHttpApiClient httpClient;
+    private String cityKey = "";
+    private String countryCode = "";
+    private Integer adminCode = 0;
+    private String cityName = "";
 
-    public AccuweatherStation(Cache cache, ObjectMapper mapper, HttpClient httpClient) {
-        this.cache = cache;
-        this.mapper = mapper;
+    public AccuweatherStation(AccuweatherHttpApiClient httpClient) {
         this.httpClient = httpClient;
     }
 
     @Override
+    @Nullable // FIXME(denisacostaq@gmail.com): remove this
     public Float getTemperature() {
-        Float temp = (Float) cache.getValue(TEMPEATURE_KEY);
-        if (temp == null) {
-            String json = httpClient.getCurrentConditions();
-            temp = mapper.getTemperature(json).floatValue();
-            cache.setValue(TEMPEATURE_KEY, temp);
+        CitySearchResult city = new CitySearchResult();
+        city.key = cityKey;
+        CurrentConditions currentConditions = httpClient.currentConditions(city);
+        if (currentConditions == null || currentConditions.temperature == null
+                || currentConditions.temperature.metric == null) {
+            return null;
         }
-        return temp;
+        return Double.valueOf(currentConditions.temperature.metric.value).floatValue();
     }
 
     @Override
+    @Nullable // FIXME(denisacostaq@gmail.com): remove this
     public Float getHumidity() {
         return null;
     }
 
     @Override
+    @Nullable // FIXME(denisacostaq@gmail.com): remove this
     public Date getCurrentTime() {
         return null;
     }
 
     @Override
     public Boolean hasPrecipitation() {
-        Boolean hasPrecip = (Boolean) cache.getValue(HAS_PRESIPITACION_KEY);
-        if (hasPrecip == null) {
-            String json = httpClient.getCurrentConditions();
-            hasPrecip = mapper.hasPrecipitation(json);
-            cache.setValue(HAS_PRESIPITACION_KEY, hasPrecip);
-        }
-        return hasPrecip;
+        CitySearchResult city = new CitySearchResult();
+        city.key = cityKey;
+        CurrentConditions currentConditions = httpClient.currentConditions(city);
+        return currentConditions.hasPrecipitation;
     }
 
     public boolean resolveHttpCityKey() {
-        if (StringUtils.isEmpty(httpClient.getCityKey())) {
-            String json = httpClient.resolveCityKey();
-            String cityKey = mapper.getCityKey(json);
+        if (StringUtils.isEmpty(this.cityKey)) {
+            logger.debug("Validating API key through getting cities API");
+            AdministrativeArea aa = new AdministrativeArea();
+            aa.iD = String.valueOf(adminCode);
+            aa.countryID = countryCode;
+            CitySearchResult csr = new CitySearchResult();
+            csr.englishName = cityName;
+            List<CitySearchResult> cities = httpClient.citySearch(aa, csr);
+            if (Objects.isNull(cities) || cities.size() != 1) {
+                logger.warn("expected 1 city but got {}", Objects.isNull(cities) ? "null" : cities.size());
+                return false;
+            }
+            String cityKey = cities.get(0).key;
             if (StringUtils.isEmpty(cityKey)) {
                 return false;
             }
-            httpClient.setCityKey(cityKey);
+            // Got a response so the keys are good
+            this.setCityKey(cityKey);
             return true;
         }
         return false;
@@ -88,19 +107,19 @@ public class AccuweatherStation implements WeatherStation {
         this.httpClient.setApiKey(apiKey);
     }
 
-    public void setHttpCountryCode(String countryCode) {
-        this.httpClient.setCountryCode(countryCode);
+    public void setCountryCode(String countryCode) {
+        this.countryCode = countryCode;
     }
 
-    public void setHttpAdminCode(Integer adminCode) {
-        this.httpClient.setAdminCode(adminCode);
+    public void setAdminCode(Integer adminCode) {
+        this.adminCode = adminCode;
     }
 
-    public void setLocationName(String locationName) {
-        this.httpClient.setLocationName(locationName);
+    public void setCityName(String locationName) {
+        this.cityName = locationName;
     }
 
     public void setCityKey(String cityKey) {
-        this.httpClient.setCityKey(cityKey);
+        this.cityKey = cityKey;
     }
 }

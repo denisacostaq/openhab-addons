@@ -11,22 +11,18 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-package org.openhab.binding.accuweather.internal.interfaces;
-
-import java.math.BigDecimal;
+package org.openhab.binding.accuweather.internal.util.api.client;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * The {@link GeoInfo} is responsible getting relevant location information based in coordinates.
+ * The {@link HttpClientRawInterface} is responsible for making http requests to accuweather.com.
  *
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
 @NonNullByDefault
-public interface GeoInfo {
-    String getCityName(BigDecimal latitude, BigDecimal longitude);
+public interface HttpClientRawInterface {
+    String citySearch(String countryDomainName, String adminCodeId, String cityNameQuery, String apiKey);
 
-    String getCountryName(BigDecimal latitude, BigDecimal longitude);
-
-    String getCountryDomainName(BigDecimal latitude, BigDecimal longitude);
+    String getCurrentConditions(String cityKey, String apiKey);
 }

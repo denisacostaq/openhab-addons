@@ -42,7 +42,7 @@ public class AccuweatherBridgeHandler extends BaseBridgeHandler {
     private String apiKey = "";
     private String countryCode = "";
     private Integer adminCode = 0;
-    private String locationName = "";
+    private String cityName = "";
     private AccuweatherStation accuweatherStation;
 
     public AccuweatherBridgeHandler(Bridge bridge, AccuweatherStation accuweatherStation) {
@@ -64,9 +64,9 @@ public class AccuweatherBridgeHandler extends BaseBridgeHandler {
                 return;
             }
             accuweatherStation.setHttpApiKey(apiKey);
-            accuweatherStation.setHttpCountryCode(countryCode);
-            accuweatherStation.setHttpAdminCode(adminCode);
-            accuweatherStation.setLocationName(locationName);
+            accuweatherStation.setCountryCode(countryCode);
+            accuweatherStation.setAdminCode(adminCode);
+            accuweatherStation.setCityName(cityName);
             if (accuweatherStation.resolveHttpCityKey()) {
                 updateStatus(ThingStatus.ONLINE);
             } else {
@@ -127,7 +127,7 @@ public class AccuweatherBridgeHandler extends BaseBridgeHandler {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Missing location name");
             return false;
         }
-        locationName = configLocationName;
+        cityName = configLocationName;
         return true;
     }
 
