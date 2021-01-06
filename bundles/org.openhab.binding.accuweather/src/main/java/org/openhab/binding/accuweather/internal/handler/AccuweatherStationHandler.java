@@ -17,13 +17,16 @@ import static org.openhab.binding.accuweather.internal.AccuweatherBindingConstan
 
 import java.util.concurrent.ScheduledFuture;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.binding.accuweather.internal.util.api.AccuweatherStation;
+import org.openhab.binding.accuweather.internal.config.AccuweatherStationConfiguration;
+import org.openhab.binding.accuweather.internal.interfaces.WeatherStation;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
+import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
@@ -39,26 +42,42 @@ import org.slf4j.LoggerFactory;
 @NonNullByDefault
 public class AccuweatherStationHandler extends BaseThingHandler {
     private final Logger logger = LoggerFactory.getLogger(AccuweatherStationHandler.class);
-    private @Nullable AccuweatherStation accuweatherStation;
+    private @Nullable AccuweatherStationConfiguration config;
+    private @Nullable WeatherStation weatherStation;
     private @Nullable ScheduledFuture<?> poolingJob;
+    private String countryCode = "";
+    private Integer adminCode = 0;
+    private String cityName = "";
 
     /**
      * Creates a new instance of this class for the {@link Thing}.
      *
      * @param thing the thing that should be handled, not null
      */
-    public AccuweatherStationHandler(Thing thing) {
+    public AccuweatherStationHandler(Thing thing, WeatherStation weatherStation) {
         super(thing);
+        this.weatherStation = weatherStation;
     }
 
     @Override
     public void initialize() {
+        config = getConfigAs(AccuweatherStationConfiguration.class);
         updateStatus(ThingStatus.UNKNOWN);
         scheduler.execute(() -> {
             updateStatus(getBridge().getStatus());
-            poolingJob = new AccuweatherDataSource(scheduler, accuweatherStation).start((temp) -> {
-                setTemperature(temp);
-            });
+            if (!hasRequiredFields()) {
+                setThingOfflineWithConfError("some required config fields are missing");
+                return;
+            }
+            if (weatherStation.verifyStationConfigParams(countryCode, adminCode, cityName)) {
+                updateStatus(ThingStatus.ONLINE);
+                poolingJob = new AccuweatherDataSource(scheduler, weatherStation).start((temp) -> {
+                    setTemperature(temp);
+                });
+            } else {
+                // FIXME(denisacostaq@gmail.com): fix this handling
+                setThingOfflineWithCommError("unable to get city key for the configured parameters");
+            }
         });
     }
 
@@ -74,7 +93,7 @@ public class AccuweatherStationHandler extends BaseThingHandler {
             if (command instanceof RefreshType) {
                 logger.warn("if (command instanceof RefreshType) {");
                 // TODO: handle data refresh
-                setTemperature(accuweatherStation.getTemperature());
+                setTemperature(weatherStation.getTemperature());
             }
 
             // TODO: handle command
@@ -84,6 +103,40 @@ public class AccuweatherStationHandler extends BaseThingHandler {
             // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
             // "Could not control device at IP address x.x.x.x");
         }
+    }
+
+    private boolean hasRequiredFields() {
+        return hasCountryCode() && hasAdminCode() && hasLocationName();
+    }
+
+    private boolean hasCountryCode() {
+        String configCountryCode = config.countryCode;
+        if (StringUtils.isEmpty(configCountryCode)) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Missing country code");
+            return false;
+        }
+        countryCode = configCountryCode;
+        return true;
+    }
+
+    private boolean hasAdminCode() {
+        Integer configAdminCode = config.adminCode;
+        if (configAdminCode == null || configAdminCode == 0) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Missing administration code");
+            return false;
+        }
+        adminCode = configAdminCode;
+        return true;
+    }
+
+    private boolean hasLocationName() {
+        String configLocationName = config.locationName;
+        if (StringUtils.isEmpty(configLocationName)) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Missing location name");
+            return false;
+        }
+        cityName = configLocationName;
+        return true;
     }
 
     private void setTemperature(@Nullable Float temp) {
@@ -96,7 +149,13 @@ public class AccuweatherStationHandler extends BaseThingHandler {
         }
     }
 
-    public void setAccuweatherStation(AccuweatherStation accuweatherStation) {
-        this.accuweatherStation = accuweatherStation;
+    public void setThingOfflineWithCommError(@Nullable String statusDescription) {
+        String status = statusDescription != null ? statusDescription : "null";
+        updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.OFFLINE.COMMUNICATION_ERROR, status);
+    }
+
+    public void setThingOfflineWithConfError(@Nullable String statusDescription) {
+        String status = statusDescription != null ? statusDescription : "null";
+        updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.OFFLINE.CONFIGURATION_ERROR, status);
     }
 }

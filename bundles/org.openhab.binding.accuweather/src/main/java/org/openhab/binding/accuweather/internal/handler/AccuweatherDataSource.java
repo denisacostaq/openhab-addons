@@ -19,7 +19,8 @@ import java.util.function.Consumer;
 
 import javax.validation.constraints.NotNull;
 
-import org.openhab.binding.accuweather.internal.util.api.AccuweatherStation;
+import org.openhab.binding.accuweather.internal.interfaces.WeatherStation;
+import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,12 +33,12 @@ import org.slf4j.LoggerFactory;
 public class AccuweatherDataSource {
     private final Logger logger = LoggerFactory.getLogger(AccuweatherDataSource.class);
     private static ScheduledExecutorService scheduler;
-    private AccuweatherStation accuweatherStation;
+    private final WeatherStation weatherStation;
 
     public AccuweatherDataSource(ScheduledExecutorService scheduledExecutorService,
-            AccuweatherStation accuweatherStation) {
+            final @Reference WeatherStation weatherStation) {
         this.scheduler = scheduledExecutorService;
-        this.accuweatherStation = accuweatherStation;
+        this.weatherStation = weatherStation;
     }
 
     /*
@@ -47,7 +48,7 @@ public class AccuweatherDataSource {
     public ScheduledFuture<?> start(Consumer<Float> callback) {
         logger.warn("AccuweatherClient: Start pooling");
         return this.scheduler.scheduleAtFixedRate(() -> {
-            callback.accept(accuweatherStation.getTemperature());
+            callback.accept(weatherStation.getTemperature());
         }, 3, 3, TimeUnit.SECONDS);
     }
 }

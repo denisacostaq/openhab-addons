@@ -17,12 +17,13 @@ import static org.openhab.binding.accuweather.internal.AccuweatherBindingConstan
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.binding.accuweather.internal.config.AccuweatherConfiguration;
-import org.openhab.binding.accuweather.internal.util.api.AccuweatherStation;
+import org.openhab.binding.accuweather.internal.config.AccuweatherBridgeConfiguration;
+import org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiClient;
 import org.openhab.core.thing.*;
 import org.openhab.core.thing.binding.BaseBridgeHandler;
 import org.openhab.core.thing.binding.ThingHandler;
 import org.openhab.core.types.Command;
+import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,18 +37,15 @@ import org.slf4j.LoggerFactory;
 public class AccuweatherBridgeHandler extends BaseBridgeHandler {
 
     private final Logger logger = LoggerFactory.getLogger(AccuweatherBridgeHandler.class);
+    private final AccuweatherHttpApiClient accuweatherHttpApiClient;
 
-    private @Nullable AccuweatherConfiguration config;
+    private @Nullable AccuweatherBridgeConfiguration config;
 
     private String apiKey = "";
-    private String countryCode = "";
-    private Integer adminCode = 0;
-    private String cityName = "";
-    private AccuweatherStation accuweatherStation;
 
-    public AccuweatherBridgeHandler(Bridge bridge, AccuweatherStation accuweatherStation) {
+    public AccuweatherBridgeHandler(Bridge bridge, final @Reference AccuweatherHttpApiClient accuweatherHttpApiClient) {
         super(bridge);
-        this.accuweatherStation = accuweatherStation;
+        this.accuweatherHttpApiClient = accuweatherHttpApiClient;
     }
 
     @Override
@@ -56,20 +54,17 @@ public class AccuweatherBridgeHandler extends BaseBridgeHandler {
 
     @Override
     public void initialize() {
-        config = getConfigAs(AccuweatherConfiguration.class);
+        config = getConfigAs(AccuweatherBridgeConfiguration.class);
         updateStatus(ThingStatus.UNKNOWN);
         scheduler.execute(() -> {
             if (!hasRequiredFields()) {
                 setThingOfflineWithConfError("some required config fields are missing");
                 return;
             }
-            accuweatherStation.setHttpApiKey(apiKey);
-            accuweatherStation.setCountryCode(countryCode);
-            accuweatherStation.setAdminCode(adminCode);
-            accuweatherStation.setCityName(cityName);
-            if (accuweatherStation.resolveHttpCityKey()) {
+            if (accuweatherHttpApiClient.verifyHttpApiKey(apiKey)) {
                 updateStatus(ThingStatus.ONLINE);
             } else {
+                // FIXME(denisacostaq@gmail.com): fix this handling
                 setThingOfflineWithCommError("unable to get city key for the configured parameters");
             }
         });
@@ -78,14 +73,16 @@ public class AccuweatherBridgeHandler extends BaseBridgeHandler {
     @Override
     public void childHandlerInitialized(ThingHandler childHandler, Thing childThing) {
         super.childHandlerInitialized(childHandler, childThing);
-        if (UID_STATION.equals(childThing.getThingTypeUID())) {
+        if (logger.isTraceEnabled() || UID_STATION.equals(childThing.getThingTypeUID())) {
             AccuweatherStationHandler accuweatherStationHandler = (AccuweatherStationHandler) childHandler;
-            accuweatherStationHandler.setAccuweatherStation(accuweatherStation);
+            Thing thing = accuweatherStationHandler.getThing();
+            logger.trace("chield handler initialized for bridge, thing type {}, thing {}", thing.getThingTypeUID(),
+                    thing.getUID());
         }
     }
 
     private boolean hasRequiredFields() {
-        return hasApiKey() && hasCountryCode() && hasAdminCode() && hasLocationName();
+        return hasApiKey();
     }
 
     /*
@@ -98,36 +95,6 @@ public class AccuweatherBridgeHandler extends BaseBridgeHandler {
             return false;
         }
         apiKey = configApiKey;
-        return true;
-    }
-
-    private boolean hasCountryCode() {
-        String configCountryCode = config.countryCode;
-        if (StringUtils.isEmpty(configCountryCode)) {
-            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Missing country code");
-            return false;
-        }
-        countryCode = configCountryCode;
-        return true;
-    }
-
-    private boolean hasAdminCode() {
-        Integer configAdminCode = config.adminCode;
-        if (configAdminCode == null || configAdminCode == 0) {
-            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Missing administration code");
-            return false;
-        }
-        adminCode = configAdminCode;
-        return true;
-    }
-
-    private boolean hasLocationName() {
-        String configLocationName = config.locationName;
-        if (StringUtils.isEmpty(configLocationName)) {
-            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Missing location name");
-            return false;
-        }
-        cityName = configLocationName;
         return true;
     }
 

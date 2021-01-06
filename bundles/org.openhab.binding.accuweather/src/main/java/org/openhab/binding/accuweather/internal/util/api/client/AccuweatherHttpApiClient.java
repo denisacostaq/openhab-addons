@@ -22,9 +22,12 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
 import org.openhab.binding.accuweather.internal.interfaces.Cache;
+import org.openhab.binding.accuweather.internal.interfaces.GeoInfo;
 import org.openhab.binding.accuweather.internal.model.pojo.AdministrativeArea;
 import org.openhab.binding.accuweather.internal.model.pojo.CitySearchResult;
 import org.openhab.binding.accuweather.internal.model.pojo.CurrentConditions;
+import org.openhab.core.i18n.LocationProvider;
+import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,15 +42,21 @@ public class AccuweatherHttpApiClient
         implements org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiClient {
     private final Logger logger = LoggerFactory.getLogger(AccuweatherHttpApiClient.class);
 
-    HttpClientRawInterface httpClientRaw;
-    Cache cache;
-    ObjectMapper mapper;
+    private final LocationProvider locationProvider;
+    private final HttpClientRawInterface httpClientRaw;
+    private final Cache cache;
+    private final ObjectMapper mapper;
+    private final GeoInfo geoInfo;
     String apiKey = "";
 
-    public AccuweatherHttpApiClient(HttpClientRawInterface httpClientRaw, ObjectMapper mapper, Cache cache) {
+    public AccuweatherHttpApiClient(final @Reference GeoInfo geoInfo,
+            final @Reference LocationProvider locationProvider, final @Reference HttpClientRawInterface httpClientRaw,
+            final @Reference ObjectMapper mapper, final @Reference Cache cache) {
+        this.locationProvider = locationProvider;
         this.httpClientRaw = httpClientRaw;
         this.mapper = mapper;
         this.cache = cache;
+        this.geoInfo = geoInfo;
     }
 
     @Override
@@ -138,14 +147,24 @@ public class AccuweatherHttpApiClient
         return citySearchResults;
     }
 
-    @Override
-    public String getApiKey() {
-        return this.apiKey;
-    }
-
-    @Override
-    public void setApiKey(String apiKey) {
+    public boolean verifyHttpApiKey(String apiKey) {
+        String countryCode = geoInfo.getCountryDomainName(locationProvider.getLocation());
+        if (StringUtils.isEmpty(countryCode)) {
+            countryCode = "bg";
+        }
+        String oldApiKey = this.apiKey;
         this.apiKey = apiKey;
+        List<AdministrativeArea> adminAreas = null;
+        try {
+            adminAreas = getAdminAreas(countryCode);
+        } catch (Exception e) {
+            logger.debug("unable to validate api key {}", e.getMessage());
+        } finally {
+            if (Objects.isNull(adminAreas) || adminAreas.isEmpty()) {
+                this.apiKey = oldApiKey;
+            }
+        }
+        return !(Objects.isNull(adminAreas) || adminAreas.isEmpty());
     }
 
     private String currentConditionsCacheKey(@NotNull CitySearchResult city) {

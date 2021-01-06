@@ -15,27 +15,37 @@ package org.openhab.binding.accuweather.internal.interfaces;
 
 import java.util.Date;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
+
 /**
  * The {@link WeatherStation} is the specification to get weather condition values from a station
  *
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
+@NonNullByDefault
 public interface WeatherStation {
     /**
      * @return the temperature in the station
      */
     // FIXME(denisacostaq@gmail.com): should include scale, like for example celcious, fahrenheit
+    @Nullable
     Float getTemperature();
 
     /**
      * @return the humidity in the station
      */
+    @Nullable
     Float getHumidity();
 
     /**
      * @return the current time in the station
      */
+    @Nullable
     Date getCurrentTime();
 
+    @Nullable
     Boolean hasPrecipitation();
+
+    boolean verifyStationConfigParams(String countryCode, Integer adminCode, String cityName);
 }

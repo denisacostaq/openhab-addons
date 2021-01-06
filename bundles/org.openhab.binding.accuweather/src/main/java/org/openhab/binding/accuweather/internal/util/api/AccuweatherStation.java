@@ -15,8 +15,8 @@ package org.openhab.binding.accuweather.internal.util.api;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiClient;
@@ -48,7 +48,7 @@ public class AccuweatherStation implements WeatherStation {
     @Override
     @Nullable
     public Float getTemperature() {
-        CurrentConditions currentConditions = httpClient.currentConditions(new CitySearchResult(cityKey, cityName));
+        CurrentConditions currentConditions = currentConditions();
         if (currentConditions == null || currentConditions.temperature == null
                 || currentConditions.temperature.metric == null) {
             return null;
@@ -69,50 +69,51 @@ public class AccuweatherStation implements WeatherStation {
     }
 
     @Override
+    @Nullable
     public Boolean hasPrecipitation() {
         CitySearchResult city = new CitySearchResult(cityKey, cityName);
         CurrentConditions currentConditions = httpClient.currentConditions(city);
         return currentConditions.hasPrecipitation;
     }
 
-    public boolean resolveHttpCityKey() {
-        if (StringUtils.isEmpty(this.cityKey)) {
-            logger.debug("Validating API key through getting cities API");
-            AdministrativeArea aa = new AdministrativeArea(String.valueOf(adminCode), countryCode);
-            CitySearchResult csr = new CitySearchResult("", cityName);
-            List<CitySearchResult> cities = httpClient.citySearch(aa, csr);
-            if (cities.size() != 1) {
-                logger.warn("expected 1 city but got {}", cities.isEmpty() ? "null" : cities.size());
-                return false;
-            }
-            String cityKey = cities.get(0).key;
-            if (StringUtils.isEmpty(cityKey)) {
-                return false;
-            }
-            // Got a response so the keys are good
-            this.setCityKey(cityKey);
-            return true;
-        }
-        return false;
-    }
-
-    public void setHttpApiKey(String apiKey) {
-        this.httpClient.setApiKey(apiKey);
-    }
-
-    public void setCountryCode(String countryCode) {
+    @Override
+    public boolean verifyStationConfigParams(String countryCode, Integer adminCode, String cityName) {
+        String oldCountryCode = this.countryCode;
+        Integer oldAdminCode = this.adminCode;
+        String oldCityName = this.cityName;
+        String oldCityKey = this.cityKey;
         this.countryCode = countryCode;
-    }
-
-    public void setAdminCode(Integer adminCode) {
         this.adminCode = adminCode;
+        this.cityName = cityName;
+        CurrentConditions currentConditions = null;
+        try {
+            List<CitySearchResult> cities = httpClient.citySearch(
+                    new AdministrativeArea(String.valueOf(adminCode), countryCode), new CitySearchResult("", cityName));
+            if (cities.size() == 1) {
+                this.cityKey = cities.get(0).key;
+                currentConditions = currentConditions();
+            } else if (cities.isEmpty()) {
+                logger.debug("Unable to get any city for country code {}, admin code {}, city name {}", countryCode,
+                        adminCode, cityName);
+            } else {
+                logger.debug(
+                        "getting more than one cities for country code {}, admin code {} and city name {} looks suspicious",
+                        countryCode, adminCode, cityName);
+            }
+        } catch (Exception e) {
+            logger.debug("unable to validate api key {}", e.getMessage());
+        } finally {
+            if (!Objects.isNull(currentConditions)) {
+                this.countryCode = oldCountryCode;
+                this.adminCode = oldAdminCode;
+                this.cityName = oldCityName;
+                this.cityKey = oldCityKey;
+            }
+        }
+        return !Objects.isNull(currentConditions);
     }
 
-    public void setCityName(String locationName) {
-        this.cityName = locationName;
-    }
-
-    public void setCityKey(String cityKey) {
-        this.cityKey = cityKey;
+    private CurrentConditions currentConditions() {
+        return httpClient.currentConditions(new CitySearchResult(this.cityKey, cityName));
     }
 }

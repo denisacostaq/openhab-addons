@@ -9,18 +9,6 @@
 			<label>API Key</label>
 			<description>Enter the API key</description>
 		</parameter>
-		<parameter name="countryCode" type="text" required="true">
-			<label>Country code</label>
-			<description>Enter the country code</description>
-		</parameter>
-		<parameter name="adminCode" type="integer" required="true">
-			<label>Administrative code</label>
-			<description>Enter the administrative code</description>
-		</parameter>
-		<parameter name="locationName" type="text" required="true">
-			<label>Location name</label>
-			<description>Enter the City, Town, or Village name</description>
-		</parameter>
 	</config-description>
 
 </config-description:config-descriptions>

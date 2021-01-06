@@ -16,17 +16,12 @@ import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * The {@link AccuweatherConfiguration} class contains fields mapping thing configuration parameters.
+ * The {@link AccuweatherStationConfiguration} class contains fields mapping thing configuration parameters.
  *
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
 @NonNullByDefault
-public class AccuweatherConfiguration {
-
-    /**
-     * API key
-     */
-    public String apiKey = "";
+public class AccuweatherStationConfiguration {
 
     /**
      * eg: us, bg, cu
@@ -45,7 +40,7 @@ public class AccuweatherConfiguration {
 
     @Override
     public String toString() {
-        return String.format("apiKey: %s, countryCode: %s, adminCode: %d, locationName: %s", "SECRET",
+        return String.format("countryCode: %s, adminCode: %d, locationName: %s",
                 StringUtils.isEmpty(countryCode) ? 0 : countryCode, adminCode == 0 ? "Null" : adminCode,
                 StringUtils.isEmpty(locationName) ? "Null" : locationName);
     }

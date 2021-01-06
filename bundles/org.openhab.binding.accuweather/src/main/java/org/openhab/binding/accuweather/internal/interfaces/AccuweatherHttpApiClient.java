@@ -38,7 +38,5 @@ public interface AccuweatherHttpApiClient {
 
     List<CitySearchResult> getNeighborsCities(CitySearchResult cityQuery);
 
-    String getApiKey();
-
-    void setApiKey(String apiKey);
+    boolean verifyHttpApiKey(String apiKey);
 }

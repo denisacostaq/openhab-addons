@@ -26,7 +26,6 @@ import org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiCli
 import org.openhab.binding.accuweather.internal.interfaces.GeoInfo;
 import org.openhab.binding.accuweather.internal.model.pojo.AdministrativeArea;
 import org.openhab.binding.accuweather.internal.model.pojo.CitySearchResult;
-import org.openhab.binding.accuweather.internal.util.api.GeoInfoImpl;
 import org.openhab.core.config.discovery.AbstractDiscoveryService;
 import org.openhab.core.config.discovery.DiscoveryResult;
 import org.openhab.core.config.discovery.DiscoveryResultBuilder;
@@ -53,19 +52,20 @@ public class AccuweatherDiscoveryService extends AbstractDiscoveryService {
     private static final int LOCATION_CHANGED_CHECK_INTERVAL_SECONDS = 60;
 
     private @Nullable ScheduledFuture<?> discoveryJob;
-    private GeoInfo geoInfo = new GeoInfoImpl();
+    private final GeoInfo geoInfo;
     private @Nullable PointType previousLocation;
-    private LocationProvider locationProvider;
+    private final LocationProvider locationProvider;
     private AccuweatherHttpApiClient httpApiClient;
 
     /**
      * Creates a {@link AccuweatherDiscoveryService} with immediately enabled background discovery.
      */
     public AccuweatherDiscoveryService(final @Reference LocationProvider locationProvider,
-            final @Reference AccuweatherHttpApiClient httpApiClient) {
+            final @Reference AccuweatherHttpApiClient httpApiClient, final @Reference GeoInfo geoInfo) {
         super(SUPPORTED_THING_TYPES, DISCOVER_TIMEOUT_SECONDS, true);
         this.locationProvider = locationProvider;
         this.httpApiClient = httpApiClient;
+        this.geoInfo = geoInfo;
     }
 
     @Override
