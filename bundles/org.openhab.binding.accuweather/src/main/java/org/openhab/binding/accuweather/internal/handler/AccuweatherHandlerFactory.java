@@ -93,7 +93,7 @@ public class AccuweatherHandlerFactory extends BaseThingHandlerFactory {
             AccuweatherHttpApiClient httpApiClient = new AccuweatherHttpApiClient(httpClient, mapper, cache);
             AccuweatherStation accuweatherStation = new AccuweatherStation(httpApiClient);
             BaseBridgeHandler handler = new AccuweatherBridgeHandler((Bridge) thing, accuweatherStation);
-            registerDiscoveryService(handler.getThing().getUID());
+            registerDiscoveryService(handler.getThing().getUID(), httpApiClient);
             return handler;
 
         } else if (UID_STATION.equals(thingTypeUID)) {
@@ -109,9 +109,10 @@ public class AccuweatherHandlerFactory extends BaseThingHandlerFactory {
         }
     }
 
-    private synchronized void registerDiscoveryService(ThingUID bridgeUID) {
+    private synchronized void registerDiscoveryService(ThingUID bridgeUID,
+            org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiClient httpApiClient) {
         logger.trace("registering {}", this.getClass().getName());
-        AccuweatherDiscoveryService discoveryService = new AccuweatherDiscoveryService(locationProvider);
+        AccuweatherDiscoveryService discoveryService = new AccuweatherDiscoveryService(locationProvider, httpApiClient);
         discoveryService.activate(null);
         discoveryServiceRegs.put(bridgeUID,
                 bundleContext.registerService(DiscoveryService.class.getName(), discoveryService, new Hashtable<>()));

@@ -17,13 +17,15 @@ import static org.openhab.binding.accuweather.internal.AccuweatherBindingConstan
 import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiClient;
 import org.openhab.binding.accuweather.internal.interfaces.GeoInfo;
 import org.openhab.binding.accuweather.internal.model.pojo.AdministrativeArea;
 import org.openhab.binding.accuweather.internal.model.pojo.CitySearchResult;
-import org.openhab.binding.accuweather.internal.model.pojo.GeoPosition;
 import org.openhab.binding.accuweather.internal.util.api.GeoInfoImpl;
 import org.openhab.core.config.discovery.AbstractDiscoveryService;
 import org.openhab.core.config.discovery.DiscoveryResult;
@@ -53,14 +55,17 @@ public class AccuweatherDiscoveryService extends AbstractDiscoveryService {
     private @Nullable ScheduledFuture<?> discoveryJob;
     private GeoInfo geoInfo = new GeoInfoImpl();
     private @Nullable PointType previousLocation;
-    private @NonNullByDefault({}) LocationProvider locationProvider;
+    private LocationProvider locationProvider;
+    private AccuweatherHttpApiClient httpApiClient;
 
     /**
      * Creates a {@link AccuweatherDiscoveryService} with immediately enabled background discovery.
      */
-    public AccuweatherDiscoveryService(final @Reference LocationProvider locationProvider) {
+    public AccuweatherDiscoveryService(final @Reference LocationProvider locationProvider,
+            final @Reference AccuweatherHttpApiClient httpApiClient) {
         super(SUPPORTED_THING_TYPES, DISCOVER_TIMEOUT_SECONDS, true);
         this.locationProvider = locationProvider;
+        this.httpApiClient = httpApiClient;
     }
 
     @Override
@@ -104,31 +109,49 @@ public class AccuweatherDiscoveryService extends AbstractDiscoveryService {
         createStationsFromLocation(location);
     }
 
-    private void createStationsFromLocation(@Nullable PointType location) {
+    private @Nullable CitySearchResult getCityFromLocation(@Nullable PointType location) {
         String cityName = geoInfo.getCityName(location);
         String countryCode = geoInfo.getCountryDomainName(location);
         String administrativeAreaName = geoInfo.getAdministrativeArea(location);
-        // AccuweatherHttpApiClient httpApiClient;
-        List<AdministrativeArea> adminAreas = new ArrayList<>();
-        // httpApiClient.getAdminAreas(countryCode)
-        // .stream().filter((aa) -> {
-        // return StringUtils.equals(aa.englishName, administrativeAreaName);
-        // }).collect(Collectors.toList());
-        adminAreas.add(new AdministrativeArea("22", countryCode));
-        AdministrativeArea administrativeArea = adminAreas.get(0);
-        // httpApiClient.citySearch(administrativeArea, new CitySearchResult("", cityName));
-        List<CitySearchResult> filteredStations = new LinkedList<>();
-        Set.of(new CitySearchResult(adminAreas.get(0).iD, cityName,
-                new GeoPosition(location.getLatitude().doubleValue(), location.getLongitude().doubleValue())))
-                .forEach(station -> {
-                    DiscoveryResult discoveryResult = DiscoveryResultBuilder
-                            .create(new ThingUID(UID_STATION,
-                                    cleanId(String.format("station_%s_%s", station.key, station.englishName))))
-                            .withLabel(String.format("Accuweather observation for %s", station.englishName))
-                            .withProperty("BindingConstants.ADMIN_AREA", station.key)
-                            .withRepresentationProperty("BindingConstants.ADMIN_AREA").build();
-                    thingDiscovered(discoveryResult);
-                });
+        List<AdministrativeArea> adminAreas = httpApiClient.getAdminAreas(countryCode).stream()
+                .filter(aa -> StringUtils.equals(aa.englishName, administrativeAreaName)).collect(Collectors.toList());
+        if (adminAreas.size() != 1) {
+            if (adminAreas.isEmpty()) {
+                logger.warn("unable to get any administrative area");
+                return null;
+            }
+            logger.debug("getting more than one administrative area for name {} and country code {} looks suspicious",
+                    adminAreas, countryCode);
+        }
+        List<CitySearchResult> citySearchResults = httpApiClient.citySearch(adminAreas.get(0),
+                new CitySearchResult("", cityName));
+        if (adminAreas.size() != 1) {
+            if (adminAreas.isEmpty()) {
+                logger.warn("unable to get any city");
+                return null;
+            }
+            logger.debug(
+                    "getting more than one cities for country code {}, admin code {} and city name {} looks suspicious",
+                    adminAreas.get(0).countryID, adminAreas.get(0).iD, cityName);
+        }
+        return citySearchResults.get(0);
+    }
+
+    private void createStationsFromLocation(@Nullable PointType location) {
+        if (Objects.isNull(location)) {
+            logger.info("can not create stations of null location");
+            return;
+        }
+        CitySearchResult city = getCityFromLocation(location);
+        httpApiClient.getNeighborsCities(city).forEach(neighborCity -> {
+            DiscoveryResult discoveryResult = DiscoveryResultBuilder
+                    .create(new ThingUID(UID_STATION,
+                            cleanId(String.format("station_%s_%s", neighborCity.englishName, neighborCity.key))))
+                    .withLabel(String.format("Accuweather observation for %s", neighborCity.englishName))
+                    .withProperty("BindingConstants.CITY_KEY", neighborCity.key)
+                    .withRepresentationProperty("BindingConstants.CITY_KEY").build();
+            thingDiscovered(discoveryResult);
+        });
     }
 
     private static String cleanId(String id) {
