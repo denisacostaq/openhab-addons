@@ -46,10 +46,9 @@ public class AccuweatherStation implements WeatherStation {
     }
 
     @Override
-    @Nullable // FIXME(denisacostaq@gmail.com): remove this
+    @Nullable
     public Float getTemperature() {
-        CitySearchResult city = new CitySearchResult(cityKey, cityName);
-        CurrentConditions currentConditions = httpClient.currentConditions(city);
+        CurrentConditions currentConditions = httpClient.currentConditions(new CitySearchResult(cityKey, cityName));
         if (currentConditions == null || currentConditions.temperature == null
                 || currentConditions.temperature.metric == null) {
             return null;

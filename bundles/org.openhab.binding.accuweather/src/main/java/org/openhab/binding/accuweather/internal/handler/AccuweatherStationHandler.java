@@ -74,7 +74,7 @@ public class AccuweatherStationHandler extends BaseThingHandler {
             if (command instanceof RefreshType) {
                 logger.warn("if (command instanceof RefreshType) {");
                 // TODO: handle data refresh
-                // setTemperature(accuweatherStation.getTemperature());
+                setTemperature(accuweatherStation.getTemperature());
             }
 
             // TODO: handle command
@@ -86,7 +86,7 @@ public class AccuweatherStationHandler extends BaseThingHandler {
         }
     }
 
-    private void setTemperature(Float temp) {
+    private void setTemperature(@Nullable Float temp) {
         if (temp == null) {
             updateStatus(ThingStatus.OFFLINE);
         } else {
