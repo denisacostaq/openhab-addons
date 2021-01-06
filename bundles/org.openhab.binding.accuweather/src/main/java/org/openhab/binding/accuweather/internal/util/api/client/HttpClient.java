@@ -52,6 +52,17 @@ public class HttpClient implements HttpClientRawInterface {
         return "";
     }
 
+    @Override
+    public String getAdminAreas(String countryDomainName, String apiKey) {
+        final String ADMIN_AREAS_URL = "http://dataservice.accuweather.com/locations/v1/adminareas/%COUNTRY_DOMAIN_NAME_CODE%?apikey=%API_KEY%";
+        String url = ADMIN_AREAS_URL.replace("%COUNTRY_DOMAIN_NAME_CODE%", countryDomainName).replace("%API_KEY%",
+                apiKey);
+        // FIXME(denisacostaq@gmail.com): Use the build url instead
+        url = "http://localhost:8000/Admin_Area_List.json";
+        logger.debug("Bridge: Querying Admin (results narrowed by countryCode) from Accuweather service");
+        return makeHttpRequest(url);
+    }
+
     /**
      *
      * @return the city key
@@ -62,10 +73,22 @@ public class HttpClient implements HttpClientRawInterface {
         String url = CITY_SEARCH_URL.replace("%COUNTRY_DOMAIN_NAME_CODE%", countryDomainName)
                 .replace("%ADMIN_CODE%", adminCodeId).replace("%API_KEY%", apiKey)
                 .replace("%CITY_NAME_QUERY%", cityNameQuery);
-        logger.debug("Validating API key through getting cities API");
+        // FIXME(denisacostaq@gmail.com): logger.debug("Validating API key through getting cities API");
         // FIXME(denisacostaq@gmail.com): Use the build url instead
         url = "http://localhost:8000/City_Search_results_narrowed_by_countryCode_and_adminCode_.json";
-        logger.debug("Bridge: Querying City Search (results narrowed by countryCode and adminCode Accuweather service");
+        logger.debug(
+                "Bridge: Querying City Search (results narrowed by countryCode and adminCode) from Accuweather service");
+        return makeHttpRequest(url);
+    }
+
+    @Override
+    public String neighborsCities(String cityKey, String apiKey) {
+        final String NEIGHBORS_CITIES_URL = "http://dataservice.accuweather.com/locations/v1/cities/neighbors/%CITY_KEY%?apikey=%API_KEY%";
+        String url = NEIGHBORS_CITIES_URL.replace("%CITY_KEY%", cityKey).replace("%API_KEY%", apiKey);
+        // FIXME(denisacostaq@gmail.com): logger.debug("Validating API key through getting cities API");
+        // FIXME(denisacostaq@gmail.com): Use the build url instead
+        url = "http://localhost:8000/City_NeighborsbylocationKey.json";
+        logger.debug("Bridge: Querying Neighbors Cities (results narrowed by city) from Accuweather service");
         return makeHttpRequest(url);
     }
 

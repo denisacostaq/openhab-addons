@@ -13,7 +13,12 @@
 
 package org.openhab.binding.accuweather.internal.util.api.client;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.openhab.binding.accuweather.internal.handler.AccuweatherBridgeHandler;
+import org.openhab.binding.accuweather.internal.model.pojo.AdministrativeArea;
 import org.openhab.binding.accuweather.internal.model.pojo.CitySearchResult;
 import org.openhab.binding.accuweather.internal.model.pojo.CurrentConditions;
 import org.slf4j.Logger;
@@ -31,16 +36,9 @@ public class ObjectMapper {
     private final Logger logger = LoggerFactory.getLogger(ObjectMapper.class);
     private final Gson gson = new Gson();
 
-    public CitySearchResult deserializeCitySearchResult(String json) {
+    public List<CitySearchResult> deserializeCitySearchResult(String json) {
         try {
-            CitySearchResult[] cities = gson.fromJson(json, CitySearchResult[].class);
-            logger.trace("Bridge: API key is valid with");
-            if (cities.length > 0) {
-                if (cities.length > 1) {
-                    logger.warn("Expected a single result for city search but got {}", cities.length);
-                }
-                return cities[0];
-            }
+            return Arrays.stream(gson.fromJson(json, CitySearchResult[].class)).collect(Collectors.toList());
         } catch (JsonSyntaxException e) {
             logger.debug("Got JsonSyntaxException: {}", e.getMessage());
             // FIXME(denisacostaq@gmail.com): setThingOfflineWithCommError(e.getMessage(), "Error parsing json
@@ -50,10 +48,20 @@ public class ObjectMapper {
         return null;
     }
 
+    public List<AdministrativeArea> deserializeAdminAreasResult(String json) {
+        try {
+            return Arrays.stream(gson.fromJson(json, AdministrativeArea[].class)).collect(Collectors.toList());
+        } catch (JsonSyntaxException e) {
+            logger.debug("Got JsonSyntaxException: {}", e.getMessage());
+            // FIXME(denisacostaq@gmail.com): setThingOfflineWithCommError(e.getMessage(), "Error parsing json
+            // response");
+        }
+        return null;
+    }
+
     public CurrentConditions deserializeCurrentConditions(String json) {
         try {
             CurrentConditions[] currentConditions = gson.fromJson(json, CurrentConditions[].class);
-            logger.trace("Bridge: API key is valid with");
             if (currentConditions.length > 0) {
                 if (currentConditions.length > 1) {
                     logger.warn("Expected a single result for current conditions but got {}", currentConditions.length);
@@ -70,11 +78,11 @@ public class ObjectMapper {
     }
 
     public String getCityKey(String json) {
-        CitySearchResult citySearchResult = deserializeCitySearchResult(json);
-        if (citySearchResult == null) {
+        List<CitySearchResult> citySearchResults = deserializeCitySearchResult(json);
+        if (citySearchResults.isEmpty()) {
             return "";
         }
-        return citySearchResult.key;
+        return citySearchResults.get(0).key;
     }
 
     public Double getTemperature(String json) {

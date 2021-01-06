@@ -22,7 +22,11 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
  */
 @NonNullByDefault
 public interface HttpClientRawInterface {
+    String getAdminAreas(String countryDomainName, String apiKey);
+
     String citySearch(String countryDomainName, String adminCodeId, String cityNameQuery, String apiKey);
+
+    String neighborsCities(String cityKey, String apiKey);
 
     String getCurrentConditions(String cityKey, String apiKey);
 }

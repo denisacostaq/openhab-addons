@@ -37,7 +37,7 @@ public interface AccuweatherHttpApiClient {
     CurrentConditions currentConditions(CitySearchResult city);
 
     @Nullable // FIXME(denisacostaq@gmail.com): remove
-    List<CitySearchResult> getNeighborsCities(CitySearchResult cityQuery);
+    List<CitySearchResult> getNeighborsCities(@Nullable CitySearchResult cityQuery);
 
     String getApiKey();
 

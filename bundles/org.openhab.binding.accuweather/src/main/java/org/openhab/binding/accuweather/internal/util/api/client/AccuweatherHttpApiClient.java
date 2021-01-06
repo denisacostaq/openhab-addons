@@ -13,7 +13,7 @@
 
 package org.openhab.binding.accuweather.internal.util.api.client;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -24,6 +24,8 @@ import org.openhab.binding.accuweather.internal.interfaces.Cache;
 import org.openhab.binding.accuweather.internal.model.pojo.AdministrativeArea;
 import org.openhab.binding.accuweather.internal.model.pojo.CitySearchResult;
 import org.openhab.binding.accuweather.internal.model.pojo.CurrentConditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The {@link AccuweatherHttpApiClient} is responsible for preparing the requests to HttpClientRawInterface
@@ -34,9 +36,7 @@ import org.openhab.binding.accuweather.internal.model.pojo.CurrentConditions;
 @NonNullByDefault
 public class AccuweatherHttpApiClient
         implements org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiClient {
-
-    private static final String TEMPEATURE_KEY = "11ba66f6-7e84-424e-97e8-f362756d4ed4";
-    private static final String HAS_PRESIPITACION_KEY = "ae781ae5-618d-4c6b-b6f2-f064b8706a26";
+    private final Logger logger = LoggerFactory.getLogger(AccuweatherHttpApiClient.class);
 
     HttpClientRawInterface httpClientRaw;
     Cache cache;
@@ -52,21 +52,45 @@ public class AccuweatherHttpApiClient
     @Override
     @Nullable // FIXME(denisacostaq@gmail.com): remove
     public List<AdministrativeArea> getAdminAreas(String countryDomainName) {
-        return null;
+        String key = adminAreasCacheKey(countryDomainName);
+        // FIXME(denisacostaq@gmail.com): consider expired here, priority of null vs rate vs cache
+        String adminAreas = (String) cache.getValue(key);
+        boolean foundInCache = Objects.isNull(adminAreas);
+        List<AdministrativeArea> adminAreasModel;
+        logger.warn("foundInCache {}", foundInCache);
+        if (foundInCache) {
+            logger.debug("invalid cache value, getting a new one");
+            String resp = httpClientRaw.getAdminAreas(countryDomainName, this.apiKey);
+            adminAreasModel = mapper.deserializeAdminAreasResult(resp);
+            cache.setValue(key, resp);
+        } else {
+            logger.debug("using previous value from cache");
+            adminAreasModel = mapper.deserializeAdminAreasResult(adminAreas);
+        }
+        logger.debug("getting {} admin areas for country code {}", adminAreasModel.size(), countryDomainName);
+        return adminAreasModel;
     }
 
     @Override
     public List<CitySearchResult> citySearch(AdministrativeArea adminCode, CitySearchResult cityQuery) {
         String key = citySearchCacheKey(adminCode, cityQuery);
-        String citySearch = (String) cache.getValue(key);
         // FIXME(denisacostaq@gmail.com): consider expired here, priority of null vs rate vs cache
-        if (Objects.isNull(citySearch)) {
+        String citySearch = (String) cache.getValue(key);
+        boolean foundInCache = Objects.isNull(citySearch);
+        List<CitySearchResult> citySearchResults;
+        if (foundInCache) {
+            logger.debug("invalid cache value, getting a new one");
             String resp = httpClientRaw.citySearch(adminCode.countryID, adminCode.iD, cityQuery.englishName,
                     this.apiKey);
-            citySearch = resp;
-            cache.setValue(key, citySearch);
+            citySearchResults = mapper.deserializeCitySearchResult(resp);
+            cache.setValue(key, resp);
+        } else {
+            logger.debug("using previous value from cache");
+            citySearchResults = mapper.deserializeCitySearchResult(citySearch);
         }
-        return Arrays.asList(mapper.deserializeCitySearchResult(citySearch));
+        logger.debug("getting {} cities for country code {}, admin code {} and city name {}", citySearchResults.size(),
+                adminCode.countryID, adminCode.iD, cityQuery.englishName);
+        return citySearchResults;
     }
 
     @Override
@@ -74,18 +98,44 @@ public class AccuweatherHttpApiClient
         String key = currentConditionsCacheKey(city);
         String currentConditions = (String) cache.getValue(key);
         // FIXME(denisacostaq@gmail.com): consider expired here, priority of null vs rate vs cache
-        if (Objects.isNull(currentConditions)) {
+        boolean foundInCache = Objects.isNull(currentConditions);
+        CurrentConditions currentConditionsModel;
+        if (foundInCache) {
+            logger.debug("invalid cache value, getting a new one");
             String resp = httpClientRaw.getCurrentConditions(city.key, this.apiKey);
-            currentConditions = resp;
-            cache.setValue(key, currentConditions);
+            currentConditionsModel = mapper.deserializeCurrentConditions(resp);
+            cache.setValue(key, resp);
+        } else {
+            logger.debug("using previous value from cache");
+            currentConditionsModel = mapper.deserializeCurrentConditions(currentConditions);
         }
-        return mapper.deserializeCurrentConditions(currentConditions);
+        logger.debug("getting current conditions {} for city key {}", currentConditions, city.englishName);
+        return currentConditionsModel;
     }
 
     @Override
     @Nullable // FIXME(denisacostaq@gmail.com): remove
-    public List<CitySearchResult> getNeighborsCities(CitySearchResult cityQuery) {
-        return null;
+    public List<CitySearchResult> getNeighborsCities(@Nullable CitySearchResult city) {
+        if (Objects.isNull(city)) {
+            logger.info("can not get neighbors of null city");
+            return new ArrayList<>();
+        }
+        String key = neighborsCitiesCacheKey(city);
+        // FIXME(denisacostaq@gmail.com): consider expired here, priority of null vs rate vs cache
+        String citySearch = (String) cache.getValue(key);
+        List<CitySearchResult> citySearchResults;
+        boolean foundInCache = Objects.isNull(citySearch);
+        if (foundInCache) {
+            logger.debug("invalid cache value, getting a new one");
+            String resp = httpClientRaw.neighborsCities(city.key, this.apiKey);
+            citySearchResults = mapper.deserializeCitySearchResult(resp);
+            cache.setValue(key, resp);
+        } else {
+            logger.debug("using previous value from cache");
+            citySearchResults = mapper.deserializeCitySearchResult(citySearch);
+        }
+        logger.debug("getting {} neighbor cities for city name", city.englishName);
+        return citySearchResults;
     }
 
     @Override
@@ -99,10 +149,18 @@ public class AccuweatherHttpApiClient
     }
 
     private String currentConditionsCacheKey(@NotNull CitySearchResult city) {
-        return String.format("%s/%s", this.apiKey, city.key);
+        return String.format("%s/%s/currentConditionsCacheKey", this.apiKey, city.key);
+    }
+
+    private String neighborsCitiesCacheKey(@Nullable CitySearchResult city) {
+        return String.format("%s/%s/neighborsCitiesCacheKey", this.apiKey, city.key);
     }
 
     private String citySearchCacheKey(@NotNull AdministrativeArea adminCode, @NotNull CitySearchResult cityQuery) {
         return String.format("%s/%s/%s/%s", this.apiKey, adminCode.countryID, adminCode.iD, cityQuery.englishName);
+    }
+
+    private String adminAreasCacheKey(@NotNull String countryDomainName) {
+        return String.format("%s/%s", this.apiKey, countryDomainName);
     }
 }

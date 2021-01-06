@@ -15,7 +15,6 @@ package org.openhab.binding.accuweather.internal.util.api;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -49,7 +48,7 @@ public class AccuweatherStation implements WeatherStation {
     @Override
     @Nullable // FIXME(denisacostaq@gmail.com): remove this
     public Float getTemperature() {
-        CitySearchResult city = new CitySearchResult(cityKey, "");
+        CitySearchResult city = new CitySearchResult(cityKey, cityName);
         CurrentConditions currentConditions = httpClient.currentConditions(city);
         if (currentConditions == null || currentConditions.temperature == null
                 || currentConditions.temperature.metric == null) {
@@ -72,7 +71,7 @@ public class AccuweatherStation implements WeatherStation {
 
     @Override
     public Boolean hasPrecipitation() {
-        CitySearchResult city = new CitySearchResult(cityKey, "");
+        CitySearchResult city = new CitySearchResult(cityKey, cityName);
         CurrentConditions currentConditions = httpClient.currentConditions(city);
         return currentConditions.hasPrecipitation;
     }
@@ -83,8 +82,8 @@ public class AccuweatherStation implements WeatherStation {
             AdministrativeArea aa = new AdministrativeArea(String.valueOf(adminCode), countryCode);
             CitySearchResult csr = new CitySearchResult("", cityName);
             List<CitySearchResult> cities = httpClient.citySearch(aa, csr);
-            if (Objects.isNull(cities) || cities.size() != 1) {
-                logger.warn("expected 1 city but got {}", Objects.isNull(cities) ? "null" : cities.size());
+            if (cities.size() != 1) {
+                logger.warn("expected 1 city but got {}", cities.isEmpty() ? "null" : cities.size());
                 return false;
             }
             String cityKey = cities.get(0).key;
