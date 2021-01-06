@@ -40,4 +40,18 @@ public class CitySearchResult {
     public boolean isAlias;
     public List<Object> supplementalAdminAreas;
     public List<String> dataSets;
+
+    public CitySearchResult() {
+    }
+
+    public CitySearchResult(String key, String englishName, GeoPosition geoPosition) {
+        this.key = key;
+        this.englishName = englishName;
+        this.geoPosition = geoPosition;
+    }
+
+    public CitySearchResult(String key, String englishName) {
+        this.key = key;
+        this.englishName = englishName;
+    }
 }

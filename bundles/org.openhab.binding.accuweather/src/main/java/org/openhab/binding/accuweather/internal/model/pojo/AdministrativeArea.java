@@ -26,4 +26,12 @@ public class AdministrativeArea {
     public String localizedType;
     public String englishType;
     public String countryID;
+
+    public AdministrativeArea() {
+    }
+
+    public AdministrativeArea(String iD, String countryID) {
+        this.iD = iD;
+        this.countryID = countryID;
+    }
 }

@@ -49,8 +49,7 @@ public class AccuweatherStation implements WeatherStation {
     @Override
     @Nullable // FIXME(denisacostaq@gmail.com): remove this
     public Float getTemperature() {
-        CitySearchResult city = new CitySearchResult();
-        city.key = cityKey;
+        CitySearchResult city = new CitySearchResult(cityKey, "");
         CurrentConditions currentConditions = httpClient.currentConditions(city);
         if (currentConditions == null || currentConditions.temperature == null
                 || currentConditions.temperature.metric == null) {
@@ -73,8 +72,7 @@ public class AccuweatherStation implements WeatherStation {
 
     @Override
     public Boolean hasPrecipitation() {
-        CitySearchResult city = new CitySearchResult();
-        city.key = cityKey;
+        CitySearchResult city = new CitySearchResult(cityKey, "");
         CurrentConditions currentConditions = httpClient.currentConditions(city);
         return currentConditions.hasPrecipitation;
     }
@@ -82,11 +80,8 @@ public class AccuweatherStation implements WeatherStation {
     public boolean resolveHttpCityKey() {
         if (StringUtils.isEmpty(this.cityKey)) {
             logger.debug("Validating API key through getting cities API");
-            AdministrativeArea aa = new AdministrativeArea();
-            aa.iD = String.valueOf(adminCode);
-            aa.countryID = countryCode;
-            CitySearchResult csr = new CitySearchResult();
-            csr.englishName = cityName;
+            AdministrativeArea aa = new AdministrativeArea(String.valueOf(adminCode), countryCode);
+            CitySearchResult csr = new CitySearchResult("", cityName);
             List<CitySearchResult> cities = httpClient.citySearch(aa, csr);
             if (Objects.isNull(cities) || cities.size() != 1) {
                 logger.warn("expected 1 city but got {}", Objects.isNull(cities) ? "null" : cities.size());

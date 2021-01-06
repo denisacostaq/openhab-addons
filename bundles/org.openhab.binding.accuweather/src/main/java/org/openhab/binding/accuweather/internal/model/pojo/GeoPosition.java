@@ -22,4 +22,12 @@ public class GeoPosition {
     public double latitude;
     public double longitude;
     public Elevation elevation;
+
+    public GeoPosition() {
+    }
+
+    public GeoPosition(double latitude, double longitude) {
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
 }
