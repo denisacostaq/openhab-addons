@@ -109,7 +109,7 @@ public class AccuweatherDiscoveryService extends AbstractDiscoveryService {
         createStationsFromLocation(location);
     }
 
-    private @Nullable CitySearchResult getCityFromLocation(@Nullable PointType location) {
+    private CitySearchResult getCityFromLocation(@Nullable PointType location) {
         String cityName = geoInfo.getCityName(location);
         String countryCode = geoInfo.getCountryDomainName(location);
         String administrativeAreaName = geoInfo.getAdministrativeArea(location);
@@ -118,7 +118,7 @@ public class AccuweatherDiscoveryService extends AbstractDiscoveryService {
         if (adminAreas.size() != 1) {
             if (adminAreas.isEmpty()) {
                 logger.warn("unable to get any administrative area");
-                return null;
+                return new CitySearchResult();
             }
             logger.debug("getting more than one administrative area for name {} and country code {} looks suspicious",
                     adminAreas, countryCode);
@@ -128,7 +128,7 @@ public class AccuweatherDiscoveryService extends AbstractDiscoveryService {
         if (adminAreas.size() != 1) {
             if (adminAreas.isEmpty()) {
                 logger.warn("unable to get any city");
-                return null;
+                return new CitySearchResult();
             }
             logger.debug(
                     "getting more than one cities for country code {}, admin code {} and city name {} looks suspicious",
@@ -143,7 +143,14 @@ public class AccuweatherDiscoveryService extends AbstractDiscoveryService {
             return;
         }
         CitySearchResult city = getCityFromLocation(location);
-        httpApiClient.getNeighborsCities(city).forEach(neighborCity -> {
+        if (StringUtils.isEmpty(city.key)) {
+            logger.info("can not determine city from location");
+            return;
+        }
+        List<CitySearchResult> discoveredCities = new ArrayList<>();
+        discoveredCities.add(city);
+        discoveredCities.addAll(httpApiClient.getNeighborsCities(city));
+        discoveredCities.forEach(neighborCity -> {
             DiscoveryResult discoveryResult = DiscoveryResultBuilder
                     .create(new ThingUID(UID_STATION,
                             cleanId(String.format("station_%s_%s", neighborCity.englishName, neighborCity.key))))

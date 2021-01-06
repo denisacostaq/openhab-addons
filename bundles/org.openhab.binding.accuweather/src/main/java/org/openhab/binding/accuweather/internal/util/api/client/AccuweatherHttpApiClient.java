@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
@@ -114,10 +115,9 @@ public class AccuweatherHttpApiClient
     }
 
     @Override
-    @Nullable // FIXME(denisacostaq@gmail.com): remove
-    public List<CitySearchResult> getNeighborsCities(@Nullable CitySearchResult city) {
-        if (Objects.isNull(city)) {
-            logger.info("can not get neighbors of null city");
+    public List<CitySearchResult> getNeighborsCities(CitySearchResult city) {
+        if (StringUtils.isEmpty(city.key)) {
+            logger.info("can not get neighbors of city without key");
             return new ArrayList<>();
         }
         String key = neighborsCitiesCacheKey(city);
