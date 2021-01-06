@@ -13,9 +13,9 @@
 
 package org.openhab.binding.accuweather.internal.interfaces;
 
-import java.math.BigDecimal;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.core.library.types.PointType;
 
 /**
  * The {@link GeoInfo} is responsible getting relevant location information based in coordinates.
@@ -24,9 +24,11 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
  */
 @NonNullByDefault
 public interface GeoInfo {
-    String getCityName(BigDecimal latitude, BigDecimal longitude);
+    String getCityName(@Nullable PointType location);
 
-    String getCountryName(BigDecimal latitude, BigDecimal longitude);
+    String getCountryName(@Nullable PointType location);
 
-    String getCountryDomainName(BigDecimal latitude, BigDecimal longitude);
+    String getCountryDomainName(@Nullable PointType location);
+
+    String getAdministrativeArea(@Nullable PointType location);
 }

@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
  * The {@link AccuweatherDataSource} is responsible for pulling data through
  * the http API .from accuweather.com
  *
- * @author Mark Hilbush - Initial contribution
+ * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
 public class AccuweatherDataSource {
     private final Logger logger = LoggerFactory.getLogger(AccuweatherDataSource.class);

@@ -13,10 +13,10 @@
 
 package org.openhab.binding.accuweather.internal.util.api;
 
-import java.math.BigDecimal;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.accuweather.internal.interfaces.GeoInfo;
+import org.openhab.core.library.types.PointType;
 
 /**
  * The {@link GeoInfoImpl} is responsible getting relevant location information based in coordinates.
@@ -26,20 +26,25 @@ import org.openhab.binding.accuweather.internal.interfaces.GeoInfo;
 @NonNullByDefault
 public class GeoInfoImpl implements GeoInfo {
     @Override
-    public String getCityName(BigDecimal latitude, BigDecimal longitude) {
+    public String getCityName(@Nullable PointType location) {
         // FIXME(denisacostaq@gmail.com): Use an external API
         return "Sofia";
     }
 
     @Override
-    public String getCountryName(BigDecimal latitude, BigDecimal longitude) {
+    public String getCountryName(@Nullable PointType location) {
         // FIXME(denisacostaq@gmail.com): Use an external API
         return "Bulgaria";
     }
 
     @Override
-    public String getCountryDomainName(BigDecimal latitude, BigDecimal longitude) {
+    public String getCountryDomainName(@Nullable PointType location) {
         // FIXME(denisacostaq@gmail.com): Use an external API
         return "bg";
+    }
+
+    @Override
+    public String getAdministrativeArea(@Nullable PointType location) {
+        return "Sofia";
     }
 }
