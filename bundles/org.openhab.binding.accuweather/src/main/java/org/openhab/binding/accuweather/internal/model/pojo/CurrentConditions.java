@@ -27,6 +27,7 @@ public class CurrentConditions {
     public int epochTime;
     public String weatherText;
     public int weatherIcon;
+    @SerializedName(value = "HasPrecipitation")
     public boolean hasPrecipitation;
     public Object precipitationType;
     public boolean isDayTime;

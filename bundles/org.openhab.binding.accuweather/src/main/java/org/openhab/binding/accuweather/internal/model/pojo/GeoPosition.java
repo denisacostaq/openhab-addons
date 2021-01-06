@@ -13,13 +13,17 @@
 
 package org.openhab.binding.accuweather.internal.model.pojo;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * The {@link GeoPosition} is used to map the json response from accuwater
  *
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
 public class GeoPosition {
+    @SerializedName(value = "Latitude")
     public double latitude;
+    @SerializedName(value = "Longitude")
     public double longitude;
     public Elevation elevation;
 

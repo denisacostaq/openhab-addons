@@ -13,18 +13,23 @@
 
 package org.openhab.binding.accuweather.internal.model.pojo;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * The {@link AdministrativeArea} is used to map the json response from accuwater
  *
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
 public class AdministrativeArea {
+    @SerializedName(value = "ID")
     public String iD;
     public String localizedName;
+    @SerializedName(value = "EnglishName")
     public String englishName;
     public int level;
     public String localizedType;
     public String englishType;
+    @SerializedName(value = "CountryID")
     public String countryID;
 
     public AdministrativeArea() {

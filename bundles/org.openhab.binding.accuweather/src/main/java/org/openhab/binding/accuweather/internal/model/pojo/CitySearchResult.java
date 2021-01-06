@@ -30,12 +30,14 @@ public class CitySearchResult {
     public String type;
     public int rank;
     public String localizedName;
+    @SerializedName(value = "EnglishName")
     public String englishName;
     public String primaryPostalCode;
     public Region region;
     public Country country;
     public AdministrativeArea administrativeArea;
     public TimeZone timeZone;
+    @SerializedName(value = "GeoPosition")
     public GeoPosition geoPosition;
     public boolean isAlias;
     public List<Object> supplementalAdminAreas;
