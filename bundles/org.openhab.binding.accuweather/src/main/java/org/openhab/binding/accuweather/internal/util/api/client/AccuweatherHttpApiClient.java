@@ -149,9 +149,6 @@ public class AccuweatherHttpApiClient
 
     public boolean verifyHttpApiKey(String apiKey) {
         String countryCode = geoInfo.getCountryDomainName(locationProvider.getLocation());
-        if (StringUtils.isEmpty(countryCode)) {
-            countryCode = "bg";
-        }
         String oldApiKey = this.apiKey;
         this.apiKey = apiKey;
         List<AdministrativeArea> adminAreas = null;

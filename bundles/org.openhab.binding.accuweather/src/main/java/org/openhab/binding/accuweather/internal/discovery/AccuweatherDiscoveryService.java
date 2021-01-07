@@ -13,6 +13,7 @@
 package org.openhab.binding.accuweather.internal.discovery;
 
 import static org.openhab.binding.accuweather.internal.AccuweatherBindingConstants.*;
+import static org.openhab.binding.accuweather.internal.config.AccuweatherStationConfiguration.*;
 
 import java.util.*;
 import java.util.concurrent.ScheduledFuture;
@@ -55,17 +56,20 @@ public class AccuweatherDiscoveryService extends AbstractDiscoveryService {
     private final GeoInfo geoInfo;
     private @Nullable PointType previousLocation;
     private final LocationProvider locationProvider;
-    private AccuweatherHttpApiClient httpApiClient;
+    private final AccuweatherHttpApiClient httpApiClient;
+    private final ThingUID bridgeUID;
 
     /**
      * Creates a {@link AccuweatherDiscoveryService} with immediately enabled background discovery.
      */
     public AccuweatherDiscoveryService(final @Reference LocationProvider locationProvider,
-            final @Reference AccuweatherHttpApiClient httpApiClient, final @Reference GeoInfo geoInfo) {
+            final @Reference AccuweatherHttpApiClient httpApiClient, final @Reference GeoInfo geoInfo,
+            final @Reference ThingUID bridgeUID) {
         super(SUPPORTED_THING_TYPES, DISCOVER_TIMEOUT_SECONDS, true);
         this.locationProvider = locationProvider;
         this.httpApiClient = httpApiClient;
         this.geoInfo = geoInfo;
+        this.bridgeUID = bridgeUID;
     }
 
     @Override
@@ -144,7 +148,7 @@ public class AccuweatherDiscoveryService extends AbstractDiscoveryService {
         }
         CitySearchResult city = getCityFromLocation(location);
         if (StringUtils.isEmpty(city.key)) {
-            logger.info("can not determine city from location");
+            logger.warn("can not determine city from location");
             return;
         }
         List<CitySearchResult> discoveredCities = new ArrayList<>();
@@ -152,11 +156,12 @@ public class AccuweatherDiscoveryService extends AbstractDiscoveryService {
         discoveredCities.addAll(httpApiClient.getNeighborsCities(city));
         discoveredCities.forEach(neighborCity -> {
             DiscoveryResult discoveryResult = DiscoveryResultBuilder
-                    .create(new ThingUID(UID_STATION,
+                    .create(new ThingUID(UID_STATION, bridgeUID,
                             cleanId(String.format("station_%s_%s", neighborCity.englishName, neighborCity.key))))
                     .withLabel(String.format("Accuweather observation for %s", neighborCity.englishName))
-                    .withProperty("BindingConstants.CITY_KEY", neighborCity.key)
-                    .withRepresentationProperty("BindingConstants.CITY_KEY").build();
+                    .withProperty(countryCodeEntryNameInXml, neighborCity.country.iD)
+                    .withProperty(adminCodeEntryNameInXml, neighborCity.administrativeArea.iD)
+                    .withProperty(locationNameEntryNameInXml, neighborCity.englishName).withBridge(bridgeUID).build();
             thingDiscovered(discoveryResult);
         });
     }

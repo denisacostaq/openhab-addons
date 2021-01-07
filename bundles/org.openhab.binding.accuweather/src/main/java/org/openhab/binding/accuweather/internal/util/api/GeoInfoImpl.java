@@ -18,6 +18,8 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.accuweather.internal.interfaces.GeoInfo;
 import org.openhab.core.library.types.PointType;
 
+import java.util.Objects;
+
 /**
  * The {@link GeoInfoImpl} is responsible getting relevant location information based in coordinates.
  *
@@ -39,6 +41,11 @@ public class GeoInfoImpl implements GeoInfo {
 
     @Override
     public String getCountryDomainName(@Nullable PointType location) {
+        if (Objects.isNull(location)) {
+            // NOTE(denisacostaq@gmail.com): this is required even if there is not location
+            // provider available for verifyHttpApiKey
+            return "BG";
+        }
         // FIXME(denisacostaq@gmail.com): Use an external API
         return "bg";
     }

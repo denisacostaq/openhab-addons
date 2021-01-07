@@ -22,6 +22,10 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
  */
 @NonNullByDefault
 public class AccuweatherStationConfiguration {
+    public static final String countryCodeEntryNameInXml = "countryCode";
+    public static final String adminCodeEntryNameInXml = "adminCode";
+    public static final String locationNameEntryNameInXml = "locationName";
+
 
     /**
      * eg: us, bg, cu

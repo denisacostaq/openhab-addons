@@ -34,7 +34,9 @@ public class CitySearchResult {
     public String englishName;
     public String primaryPostalCode;
     public Region region;
+    @SerializedName(value = "Country")
     public Country country;
+    @SerializedName(value = "AdministrativeArea")
     public AdministrativeArea administrativeArea;
     public TimeZone timeZone;
     @SerializedName(value = "GeoPosition")

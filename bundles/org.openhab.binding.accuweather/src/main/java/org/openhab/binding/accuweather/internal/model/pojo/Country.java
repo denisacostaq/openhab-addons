@@ -13,12 +13,15 @@
 
 package org.openhab.binding.accuweather.internal.model.pojo;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * The {@link Country} is used to map the json response from accuwater
  *
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
 public class Country {
+    @SerializedName(value = "ID")
     public String iD;
     public String localizedName;
     public String englishName;

@@ -116,7 +116,7 @@ public class AccuweatherHandlerFactory extends BaseThingHandlerFactory {
             org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiClient httpApiClient) {
         logger.trace("registering {}", this.getClass().getName());
         AccuweatherDiscoveryService discoveryService = new AccuweatherDiscoveryService(locationProvider, httpApiClient,
-                geoInfo);
+                geoInfo, bridgeUID);
         discoveryService.activate(null);
         discoveryServiceRegs.put(bridgeUID,
                 bundleContext.registerService(DiscoveryService.class.getName(), discoveryService, new Hashtable<>()));
