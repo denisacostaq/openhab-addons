@@ -17,6 +17,7 @@ import java.util.List;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
 import org.openhab.binding.accuweather.internal.model.pojo.AdministrativeArea;
 import org.openhab.binding.accuweather.internal.model.pojo.CitySearchResult;
 import org.openhab.binding.accuweather.internal.model.pojo.CurrentConditions;
@@ -30,13 +31,14 @@ import org.openhab.binding.accuweather.internal.model.pojo.CurrentConditions;
 @NonNullByDefault
 public interface AccuweatherHttpApiClient {
     @Nullable // FIXME(denisacostaq@gmail.com): remove
-    List<AdministrativeArea> getAdminAreas(String countryDomainName);
+    List<AdministrativeArea> getAdminAreas(String countryDomainName) throws RemoteErrorResponseException;
 
-    List<CitySearchResult> citySearch(AdministrativeArea adminCode, CitySearchResult cityQuery);
+    List<CitySearchResult> citySearch(AdministrativeArea adminCode, CitySearchResult cityQuery)
+            throws RemoteErrorResponseException;
 
-    CurrentConditions currentConditions(CitySearchResult city);
+    CurrentConditions currentConditions(CitySearchResult city) throws RemoteErrorResponseException;
 
-    List<CitySearchResult> getNeighborsCities(CitySearchResult cityQuery);
+    List<CitySearchResult> getNeighborsCities(CitySearchResult cityQuery) throws RemoteErrorResponseException;
 
     boolean verifyHttpApiKey(String apiKey);
 }

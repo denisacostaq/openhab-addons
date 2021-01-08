@@ -38,6 +38,7 @@ public class InMemoryCache<T> implements Cache<T> {
     }
 
     @Override
+    // FIXME(denisacostaq@gmail.com): Invalidate key
     public void invalidateValue(String key) {
         data.remove(key);
     }

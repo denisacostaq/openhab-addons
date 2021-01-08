@@ -26,7 +26,6 @@ public class AccuweatherStationConfiguration {
     public static final String adminCodeEntryNameInXml = "adminCode";
     public static final String locationNameEntryNameInXml = "locationName";
 
-
     /**
      * eg: us, bg, cu
      */

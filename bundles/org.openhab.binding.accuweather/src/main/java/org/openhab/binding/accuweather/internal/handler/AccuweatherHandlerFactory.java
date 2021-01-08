@@ -72,17 +72,18 @@ public class AccuweatherHandlerFactory extends BaseThingHandlerFactory {
     private final GeoInfo geoInfo = new GeoInfoImpl();
     private final ObjectMapper mapper = new ObjectMapper();
     private final Cache cache = new InMemoryCache();
-    private final HttpClient httpClient = new HttpClient();
+    private final HttpClient httpClient;
     private final AccuweatherHttpApiClient httpApiClient;
 
     @Activate
     public AccuweatherHandlerFactory(final @Reference LocaleProvider localeProvider,
             final @Reference LocationProvider locationProvider, final @Reference UnitProvider unitProvider,
-            final @Reference TimeZoneProvider timeZoneProvider) {
+            final @Reference TimeZoneProvider timeZoneProvider) throws Exception {
         this.localeProvider = localeProvider;
         this.locationProvider = locationProvider;
         this.unitProvider = unitProvider;
         this.timeZoneProvider = timeZoneProvider;
+        this.httpClient = new HttpClient();
         this.httpApiClient = new AccuweatherHttpApiClient(geoInfo, locationProvider, httpClient, mapper, cache);
     }
 

@@ -14,6 +14,8 @@ package org.openhab.binding.accuweather.internal.handler;
 
 import static org.openhab.binding.accuweather.internal.AccuweatherBindingConstants.UID_STATION;
 
+import java.util.Objects;
+
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -64,8 +66,8 @@ public class AccuweatherBridgeHandler extends BaseBridgeHandler {
             if (accuweatherHttpApiClient.verifyHttpApiKey(apiKey)) {
                 updateStatus(ThingStatus.ONLINE);
             } else {
-                // FIXME(denisacostaq@gmail.com): fix this handling
-                setThingOfflineWithCommError("unable to get city key for the configured parameters");
+                // FIXME(denisacostaq@gmail.com): fix this handling, retry policy
+                setThingOfflineWithCommError("unable to validate accuweather.com API Key");
             }
         });
     }
@@ -99,12 +101,18 @@ public class AccuweatherBridgeHandler extends BaseBridgeHandler {
     }
 
     public void setThingOfflineWithCommError(@Nullable String statusDescription) {
-        String status = statusDescription != null ? statusDescription : "null";
+        if (!Objects.isNull(statusDescription)) {
+            logger.warn("{}", statusDescription);
+        }
+        final String status = !Objects.isNull(statusDescription) ? statusDescription : "null";
         updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.OFFLINE.COMMUNICATION_ERROR, status);
     }
 
     public void setThingOfflineWithConfError(@Nullable String statusDescription) {
-        String status = statusDescription != null ? statusDescription : "null";
+        if (!Objects.isNull(statusDescription)) {
+            logger.warn("{}", statusDescription);
+        }
+        final String status = !Objects.isNull(statusDescription) ? statusDescription : "null";
         updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.OFFLINE.CONFIGURATION_ERROR, status);
     }
 }

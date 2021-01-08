@@ -19,6 +19,7 @@ import java.util.Objects;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
 import org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiClient;
 import org.openhab.binding.accuweather.internal.interfaces.WeatherStation;
 import org.openhab.binding.accuweather.internal.model.pojo.AdministrativeArea;
@@ -47,7 +48,7 @@ public class AccuweatherStation implements WeatherStation {
 
     @Override
     @Nullable
-    public Float getTemperature() {
+    public Float getTemperature() throws RemoteErrorResponseException {
         CurrentConditions currentConditions = currentConditions();
         if (currentConditions == null || currentConditions.temperature == null
                 || currentConditions.temperature.metric == null) {
@@ -70,7 +71,7 @@ public class AccuweatherStation implements WeatherStation {
 
     @Override
     @Nullable
-    public Boolean hasPrecipitation() {
+    public Boolean hasPrecipitation() throws RemoteErrorResponseException {
         CitySearchResult city = new CitySearchResult(cityKey, cityName);
         CurrentConditions currentConditions = httpClient.currentConditions(city);
         return currentConditions.hasPrecipitation;
@@ -100,7 +101,7 @@ public class AccuweatherStation implements WeatherStation {
                         "getting more than one cities for country code {}, admin code {} and city name {} looks suspicious",
                         countryCode, adminCode, cityName);
             }
-        } catch (Exception e) {
+        } catch (RemoteErrorResponseException e) {
             logger.debug("unable to validate api key {}", e.getMessage());
         } finally {
             if (!Objects.isNull(currentConditions)) {
@@ -113,7 +114,7 @@ public class AccuweatherStation implements WeatherStation {
         return !Objects.isNull(currentConditions);
     }
 
-    private CurrentConditions currentConditions() {
+    private CurrentConditions currentConditions() throws RemoteErrorResponseException {
         return httpClient.currentConditions(new CitySearchResult(this.cityKey, cityName));
     }
 }

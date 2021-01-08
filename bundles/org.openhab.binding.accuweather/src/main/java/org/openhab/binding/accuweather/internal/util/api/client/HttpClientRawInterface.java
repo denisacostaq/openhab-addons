@@ -14,6 +14,8 @@
 package org.openhab.binding.accuweather.internal.util.api.client;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.accuweather.internal.exceptions.HttpErrorResponseException;
+import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
 
 /**
  * The {@link HttpClientRawInterface} is responsible for making http requests to accuweather.com.
@@ -22,11 +24,15 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
  */
 @NonNullByDefault
 public interface HttpClientRawInterface {
-    String getAdminAreas(String countryDomainName, String apiKey);
+    String getAdminAreas(String countryDomainName, String apiKey)
+            throws HttpErrorResponseException, RemoteErrorResponseException;
 
-    String citySearch(String countryDomainName, String adminCodeId, String cityNameQuery, String apiKey);
+    String citySearch(String countryDomainName, String adminCodeId, String cityNameQuery, String apiKey)
+            throws HttpErrorResponseException, RemoteErrorResponseException;
 
-    String neighborsCities(String cityKey, String apiKey);
+    String neighborsCities(String cityKey, String apiKey)
+            throws HttpErrorResponseException, RemoteErrorResponseException;
 
-    String getCurrentConditions(String cityKey, String apiKey);
+    String getCurrentConditions(String cityKey, String apiKey)
+            throws HttpErrorResponseException, RemoteErrorResponseException;
 }

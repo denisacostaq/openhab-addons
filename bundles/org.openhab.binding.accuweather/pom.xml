@@ -14,4 +14,15 @@
 
   <name>openHAB Add-ons :: Bundles :: Accuweather Binding</name>
 
+  <dependencyManagement>
+    <dependencies>
+      <!-- https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-client -->
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-client</artifactId>
+        <version>9.4.12.v20180830</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
 </project>

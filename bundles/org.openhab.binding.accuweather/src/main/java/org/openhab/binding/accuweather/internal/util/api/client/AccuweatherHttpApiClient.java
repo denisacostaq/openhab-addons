@@ -21,6 +21,8 @@ import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
+import org.openhab.binding.accuweather.internal.exceptions.HttpErrorResponseException;
+import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
 import org.openhab.binding.accuweather.internal.interfaces.Cache;
 import org.openhab.binding.accuweather.internal.interfaces.GeoInfo;
 import org.openhab.binding.accuweather.internal.model.pojo.AdministrativeArea;
@@ -61,89 +63,114 @@ public class AccuweatherHttpApiClient
 
     @Override
     @Nullable // FIXME(denisacostaq@gmail.com): remove
-    public List<AdministrativeArea> getAdminAreas(String countryDomainName) {
+    public List<AdministrativeArea> getAdminAreas(String countryDomainName) throws RemoteErrorResponseException {
         String key = adminAreasCacheKey(countryDomainName);
         // FIXME(denisacostaq@gmail.com): consider expired here, priority of null vs rate vs cache
         String adminAreas = (String) cache.getValue(key);
-        boolean foundInCache = Objects.isNull(adminAreas);
+        boolean notFoundInCache = StringUtils.isEmpty(adminAreas);
         List<AdministrativeArea> adminAreasModel;
-        logger.warn("foundInCache {}", foundInCache);
-        if (foundInCache) {
-            logger.debug("invalid cache value, getting a new one");
-            String resp = httpClientRaw.getAdminAreas(countryDomainName, this.apiKey);
-            adminAreasModel = mapper.deserializeAdminAreasResult(resp);
-            cache.setValue(key, resp);
+        if (notFoundInCache) {
+            logger.trace("invalid cache value, getting a new one");
+            try {
+                adminAreas = httpClientRaw.getAdminAreas(countryDomainName, this.apiKey);
+            } catch (HttpErrorResponseException e) {
+                logger.warn("unable to get admin areas, details:\n{}", e.toString());
+                throw new RemoteErrorResponseException(e);
+            }
         } else {
-            logger.debug("using previous value from cache");
-            adminAreasModel = mapper.deserializeAdminAreasResult(adminAreas);
+            logger.trace("using previous value from cache");
         }
-        logger.debug("getting {} admin areas for country code {}", adminAreasModel.size(), countryDomainName);
+        adminAreasModel = mapper.deserializeAdminAreasResult(adminAreas);
+        if (notFoundInCache) {
+            cache.setValue(key, adminAreas);
+        }
+        logger.trace("getting {} admin areas for country code {}", adminAreasModel.size(), countryDomainName);
         return adminAreasModel;
     }
 
     @Override
-    public List<CitySearchResult> citySearch(AdministrativeArea adminCode, CitySearchResult cityQuery) {
+    public List<CitySearchResult> citySearch(AdministrativeArea adminCode, CitySearchResult cityQuery)
+            throws RemoteErrorResponseException {
         String key = citySearchCacheKey(adminCode, cityQuery);
         // FIXME(denisacostaq@gmail.com): consider expired here, priority of null vs rate vs cache
         String citySearch = (String) cache.getValue(key);
-        boolean foundInCache = Objects.isNull(citySearch);
+        boolean notFoundInCache = StringUtils.isEmpty(citySearch);
         List<CitySearchResult> citySearchResults;
-        if (foundInCache) {
-            logger.debug("invalid cache value, getting a new one");
-            String resp = httpClientRaw.citySearch(adminCode.countryID, adminCode.iD, cityQuery.englishName,
-                    this.apiKey);
-            citySearchResults = mapper.deserializeCitySearchResult(resp);
-            cache.setValue(key, resp);
+        if (notFoundInCache) {
+            logger.trace("invalid cache value, getting a new one");
+            try {
+                citySearch = httpClientRaw.citySearch(adminCode.countryID, adminCode.iD, cityQuery.englishName,
+                        this.apiKey);
+            } catch (HttpErrorResponseException e) {
+                logger.warn("unable to get cities, details:\n{}", e.toString());
+                throw new RemoteErrorResponseException(e);
+            }
         } else {
-            logger.debug("using previous value from cache");
-            citySearchResults = mapper.deserializeCitySearchResult(citySearch);
+            logger.trace("using previous value from cache");
         }
-        logger.debug("getting {} cities for country code {}, admin code {} and city name {}", citySearchResults.size(),
+        citySearchResults = mapper.deserializeCitySearchResult(citySearch);
+        if (notFoundInCache) {
+            cache.setValue(key, citySearch);
+        }
+        logger.trace("getting {} cities for country code {}, admin code {} and city name {}", citySearchResults.size(),
                 adminCode.countryID, adminCode.iD, cityQuery.englishName);
         return citySearchResults;
     }
 
     @Override
-    public CurrentConditions currentConditions(CitySearchResult city) {
+    public CurrentConditions currentConditions(CitySearchResult city) throws RemoteErrorResponseException {
         String key = currentConditionsCacheKey(city);
         String currentConditions = (String) cache.getValue(key);
+        boolean notFoundInCache = StringUtils.isEmpty(currentConditions);
         // FIXME(denisacostaq@gmail.com): consider expired here, priority of null vs rate vs cache
-        boolean foundInCache = Objects.isNull(currentConditions);
         CurrentConditions currentConditionsModel;
-        if (foundInCache) {
-            logger.debug("invalid cache value, getting a new one");
-            String resp = httpClientRaw.getCurrentConditions(city.key, this.apiKey);
-            currentConditionsModel = mapper.deserializeCurrentConditions(resp);
-            cache.setValue(key, resp);
+        if (notFoundInCache) {
+            logger.trace("invalid cache value, getting a new one");
+            try {
+                currentConditions = httpClientRaw.getCurrentConditions(city.key, this.apiKey);
+            } catch (HttpErrorResponseException e) {
+                logger.warn("unable to get current conditions, details:\n{}", e.toString());
+                throw new RemoteErrorResponseException(e);
+            }
         } else {
-            logger.debug("using previous value from cache");
-            currentConditionsModel = mapper.deserializeCurrentConditions(currentConditions);
+            logger.trace("using previous value from cache");
         }
-        logger.debug("getting current conditions {} for city key {}", currentConditions, city.englishName);
+        currentConditionsModel = mapper.deserializeCurrentConditions(currentConditions);
+        if (notFoundInCache) {
+            cache.setValue(key, currentConditions);
+        }
+        logger.trace("getting current conditions {} for city key {}", currentConditions, city.englishName);
         return currentConditionsModel;
     }
 
     @Override
-    public List<CitySearchResult> getNeighborsCities(CitySearchResult city) {
+    // FIXME(denisacostaq@gmail.com): duplicate code
+    public List<CitySearchResult> getNeighborsCities(CitySearchResult city) throws RemoteErrorResponseException {
         if (StringUtils.isEmpty(city.key)) {
-            logger.info("can not get neighbors of city without key");
+            logger.info("can not get neighbors of city without city key");
             return new ArrayList<>();
         }
         String key = neighborsCitiesCacheKey(city);
         // FIXME(denisacostaq@gmail.com): consider expired here, priority of null vs rate vs cache
         String citySearch = (String) cache.getValue(key);
+        boolean notFoundInCache = StringUtils.isEmpty(citySearch);
         List<CitySearchResult> citySearchResults;
-        boolean foundInCache = Objects.isNull(citySearch);
-        if (foundInCache) {
-            logger.debug("invalid cache value, getting a new one");
-            String resp = httpClientRaw.neighborsCities(city.key, this.apiKey);
-            citySearchResults = mapper.deserializeCitySearchResult(resp);
-            cache.setValue(key, resp);
+        if (notFoundInCache) {
+            logger.trace("invalid cache value, getting a new one");
+            try {
+                citySearch = httpClientRaw.neighborsCities(city.key, this.apiKey);
+            } catch (HttpErrorResponseException e) {
+                logger.warn("unable to get neighbor cities, details:\n{}", e.toString());
+                throw new RemoteErrorResponseException(e);
+            }
         } else {
-            logger.debug("using previous value from cache");
-            citySearchResults = mapper.deserializeCitySearchResult(citySearch);
+            logger.trace("using previous value from cache");
         }
-        logger.debug("getting {} neighbor cities for city name", city.englishName);
+        citySearchResults = mapper.deserializeCitySearchResult(citySearch);
+        if (notFoundInCache) {
+            cache.setValue(key, citySearch);
+        }
+        logger.trace("getting {} neighbor cities for city name", city.englishName);
         return citySearchResults;
     }
 
@@ -154,8 +181,8 @@ public class AccuweatherHttpApiClient
         List<AdministrativeArea> adminAreas = null;
         try {
             adminAreas = getAdminAreas(countryCode);
-        } catch (Exception e) {
-            logger.debug("unable to validate api key {}", e.getMessage());
+        } catch (RemoteErrorResponseException e) {
+            logger.warn("unable to validate api key: {}", e.getMessage());
         } finally {
             if (Objects.isNull(adminAreas) || adminAreas.isEmpty()) {
                 this.apiKey = oldApiKey;

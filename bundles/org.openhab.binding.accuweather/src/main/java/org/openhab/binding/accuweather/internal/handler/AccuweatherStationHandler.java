@@ -15,12 +15,14 @@ package org.openhab.binding.accuweather.internal.handler;
 
 import static org.openhab.binding.accuweather.internal.AccuweatherBindingConstants.CH_TEMPERATURE;
 
+import java.util.Objects;
 import java.util.concurrent.ScheduledFuture;
 
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.accuweather.internal.config.AccuweatherStationConfiguration;
+import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
 import org.openhab.binding.accuweather.internal.interfaces.WeatherStation;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.thing.ChannelUID;
@@ -64,6 +66,10 @@ public class AccuweatherStationHandler extends BaseThingHandler {
         config = getConfigAs(AccuweatherStationConfiguration.class);
         updateStatus(ThingStatus.UNKNOWN);
         scheduler.execute(() -> {
+            if (!ThingStatus.ONLINE.equals(getBridge().getStatus())) {
+                setThingOfflineWithCommError("bridge is offline");
+                return;
+            }
             updateStatus(getBridge().getStatus());
             if (!hasRequiredFields()) {
                 setThingOfflineWithConfError("some required config fields are missing");
@@ -73,6 +79,8 @@ public class AccuweatherStationHandler extends BaseThingHandler {
                 updateStatus(ThingStatus.ONLINE);
                 poolingJob = new AccuweatherDataSource(scheduler, weatherStation).start((temp) -> {
                     setTemperature(temp);
+                }, () -> {
+                    this.cancelPoolingJob();
                 });
             } else {
                 // FIXME(denisacostaq@gmail.com): fix this handling
@@ -84,24 +92,28 @@ public class AccuweatherStationHandler extends BaseThingHandler {
     @Override
     public void dispose() {
         super.dispose();
-        this.poolingJob.cancel(true);
+        this.cancelPoolingJob();
+    }
+
+    private void cancelPoolingJob() {
+        if (!Objects.isNull(this.poolingJob) && !this.poolingJob.isCancelled()) {
+            logger.trace("cancelling the background poller");
+            this.poolingJob.cancel(false);
+        }
     }
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
         if (CH_TEMPERATURE.equals(channelUID.getId())) {
             if (command instanceof RefreshType) {
-                logger.warn("if (command instanceof RefreshType) {");
-                // TODO: handle data refresh
-                setTemperature(weatherStation.getTemperature());
+                try {
+                    setTemperature(weatherStation.getTemperature());
+                } catch (RemoteErrorResponseException e) {
+                    // TODO(denisacostaq@gmail.com): 
+                    // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+                    logger.warn("unable to get temperature, details: {}", e.getMessage());
+                }
             }
-
-            // TODO: handle command
-
-            // Note: if communication with thing fails for some reason,
-            // indicate that by setting the status with detail information:
-            // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-            // "Could not control device at IP address x.x.x.x");
         }
     }
 
@@ -140,6 +152,7 @@ public class AccuweatherStationHandler extends BaseThingHandler {
     }
 
     private void setTemperature(@Nullable Float temp) {
+        // TODO(denisacostaq@gmail.com): change to be based on exceptions
         if (temp == null) {
             updateStatus(ThingStatus.OFFLINE);
         } else {

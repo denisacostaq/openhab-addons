@@ -19,6 +19,7 @@ import java.util.function.Consumer;
 
 import javax.validation.constraints.NotNull;
 
+import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
 import org.openhab.binding.accuweather.internal.interfaces.WeatherStation;
 import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
@@ -31,6 +32,10 @@ import org.slf4j.LoggerFactory;
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
 public class AccuweatherDataSource {
+    public interface Command {
+        void call();
+    }
+
     private final Logger logger = LoggerFactory.getLogger(AccuweatherDataSource.class);
     private static ScheduledExecutorService scheduler;
     private final WeatherStation weatherStation;
@@ -45,10 +50,20 @@ public class AccuweatherDataSource {
      * Start the event listener for the Ambient Weather real-time API
      */
     @NotNull
-    public ScheduledFuture<?> start(Consumer<Float> callback) {
+    public ScheduledFuture<?> start(Consumer<Float> callback, Command cancel) {
         logger.warn("AccuweatherClient: Start pooling");
         return this.scheduler.scheduleAtFixedRate(() -> {
-            callback.accept(weatherStation.getTemperature());
+            try {
+                callback.accept(weatherStation.getTemperature());
+            } catch (RemoteErrorResponseException e) {
+                logger.warn("unable to get temperature, details: {}", e.getMessage());
+                switch (e.status()) {
+                    case BAD_CREDENTIALS:
+                    case BAD_PERMISSIONS:
+                    case BAD_RESOURCE:
+                        cancel.call();
+                }
+            }
         }, 3, 3, TimeUnit.SECONDS);
     }
 }

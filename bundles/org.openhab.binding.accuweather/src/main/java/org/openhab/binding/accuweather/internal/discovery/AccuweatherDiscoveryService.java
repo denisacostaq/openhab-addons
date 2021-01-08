@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
 import org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiClient;
 import org.openhab.binding.accuweather.internal.interfaces.GeoInfo;
 import org.openhab.binding.accuweather.internal.model.pojo.AdministrativeArea;
@@ -76,8 +77,16 @@ public class AccuweatherDiscoveryService extends AbstractDiscoveryService {
     protected void startScan() {
         logger.trace("starting Accuweather scan");
         PointType location = locationProvider.getLocation();
-        // TODO(denisacostaq@gmail.com): if (location == null) {}
-        createResults(location);
+        if (location == null) {
+            logger.warn("unable to discover stations for null location");
+            return;
+        }
+        try {
+            createResults(location);
+        } catch (RemoteErrorResponseException e) {
+            logger.warn("unable to discover stations for location {}, detail: {}", location.toFullString(),
+                    e.getMessage());
+        }
     }
 
     @Override
@@ -89,8 +98,16 @@ public class AccuweatherDiscoveryService extends AbstractDiscoveryService {
                 if (!Objects.equals(currentLocation, previousLocation)) {
                     logger.debug("Location has been changed from {} to {}: Creating new discovery results",
                             previousLocation, currentLocation);
-                    logger.warn("currentLocation {}", currentLocation.toFullString());
-                    createResults(currentLocation);
+                    if (currentLocation == null) {
+                        logger.warn("unable to discover stations for null location");
+                        return;
+                    }
+                    try {
+                        createResults(currentLocation);
+                    } catch (RemoteErrorResponseException e) {
+                        logger.warn("unable to discover stations for location {}, detail: {}",
+                                currentLocation.toFullString(), e.getMessage());
+                    }
                     previousLocation = currentLocation;
                 }
             }, 0, LOCATION_CHANGED_CHECK_INTERVAL_SECONDS, TimeUnit.SECONDS);
@@ -109,11 +126,11 @@ public class AccuweatherDiscoveryService extends AbstractDiscoveryService {
         super.deactivate();
     }
 
-    public void createResults(@Nullable PointType location) {
+    public void createResults(@Nullable PointType location) throws RemoteErrorResponseException {
         createStationsFromLocation(location);
     }
 
-    private CitySearchResult getCityFromLocation(@Nullable PointType location) {
+    private CitySearchResult getCityFromLocation(@Nullable PointType location) throws RemoteErrorResponseException {
         String cityName = geoInfo.getCityName(location);
         String countryCode = geoInfo.getCountryDomainName(location);
         String administrativeAreaName = geoInfo.getAdministrativeArea(location);
@@ -141,7 +158,7 @@ public class AccuweatherDiscoveryService extends AbstractDiscoveryService {
         return citySearchResults.get(0);
     }
 
-    private void createStationsFromLocation(@Nullable PointType location) {
+    private void createStationsFromLocation(@Nullable PointType location) throws RemoteErrorResponseException {
         if (Objects.isNull(location)) {
             logger.info("can not create stations of null location");
             return;
