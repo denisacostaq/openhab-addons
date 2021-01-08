@@ -11,5 +11,10 @@
 		<category>Temperature</category>
 		<state readOnly="true" pattern="%.1f %unit%"/>
 	</channel-type>
-
+	<channel-type id="observation_time-channel">
+		<item-type>DateTime</item-type>
+		<label>Observation Time</label>
+		<category>Time</category>
+		<state readOnly="true" pattern="%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS"/>
+	</channel-type>
 </thing:thing-descriptions>

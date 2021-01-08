@@ -23,6 +23,8 @@ import com.google.gson.annotations.SerializedName;
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
 public class CurrentConditions {
+    // TODO(denisacostaq@gmail.com): remove annotation and check error handling
+    @SerializedName(value = "LocalObservationDateTime")
     public Date localObservationDateTime;
     public int epochTime;
     public String weatherText;

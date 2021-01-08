@@ -43,10 +43,11 @@ public interface WeatherStation {
      * @return the current time in the station
      */
     @Nullable
-    Date getCurrentTime();
+    Date getCurrentTime() throws RemoteErrorResponseException;
 
     @Nullable
     Boolean hasPrecipitation() throws RemoteErrorResponseException;
 
-    boolean verifyStationConfigParams(String countryCode, Integer adminCode, String cityName) throws RemoteErrorResponseException;
+    boolean verifyStationConfigParams(String countryCode, Integer adminCode, String cityName)
+            throws RemoteErrorResponseException;
 }

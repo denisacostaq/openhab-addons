@@ -84,6 +84,7 @@ public class AccuweatherBridgeHandler extends BaseBridgeHandler {
 
     /**
      * this function have a retry policy for key validation
+     * 
      * @param delay wait a moment before trying to validate the cache
      */
     private void scheduleValidateApiKey(Duration delay) {

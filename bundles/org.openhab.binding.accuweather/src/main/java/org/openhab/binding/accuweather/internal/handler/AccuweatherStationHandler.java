@@ -13,12 +13,16 @@
 
 package org.openhab.binding.accuweather.internal.handler;
 
+import static org.openhab.binding.accuweather.internal.AccuweatherBindingConstants.CH_OBSERVATION_TIME;
 import static org.openhab.binding.accuweather.internal.AccuweatherBindingConstants.CH_TEMPERATURE;
 
-import java.time.Duration;
+import java.time.*;
+import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+
+import javax.measure.Quantity;
 
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -26,6 +30,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.accuweather.internal.config.AccuweatherStationConfiguration;
 import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
 import org.openhab.binding.accuweather.internal.interfaces.WeatherStation;
+import org.openhab.core.library.types.DateTimeType;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
@@ -94,7 +99,17 @@ public class AccuweatherStationHandler extends BaseThingHandler {
                 try {
                     setTemperature(weatherStation.getTemperature());
                 } catch (RemoteErrorResponseException e) {
-                    // TODO(denisacostaq@gmail.com): 
+                    // TODO(denisacostaq@gmail.com):
+                    // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+                    logger.warn("unable to get temperature, details: {}", e.getMessage());
+                }
+            }
+        } else if (CH_OBSERVATION_TIME.equals(channelUID.getId())) {
+            if (command instanceof RefreshType) {
+                try {
+                    setObservationTime(weatherStation.getCurrentTime());
+                } catch (RemoteErrorResponseException e) {
+                    // TODO(denisacostaq@gmail.com):
                     // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
                     logger.warn("unable to get temperature, details: {}", e.getMessage());
                 }
@@ -104,6 +119,7 @@ public class AccuweatherStationHandler extends BaseThingHandler {
 
     /**
      * this function have a retry policy for key validation
+     * 
      * @param delay wait a moment before trying to validate the cache
      */
     private void scheduleValidateStationParams(Duration delay) {
@@ -113,8 +129,9 @@ public class AccuweatherStationHandler extends BaseThingHandler {
             try {
                 if (weatherStation.verifyStationConfigParams(countryCode, adminCode, cityName)) {
                     updateStatus(ThingStatus.ONLINE);
-                    poolingJob = new AccuweatherDataSource(scheduler, weatherStation).start((temp) -> {
+                    poolingJob = new AccuweatherDataSource(scheduler, weatherStation).start((temp, date) -> {
                         setTemperature(temp);
+                        setObservationTime(date);
                     }, () -> {
                         this.cancelPoolingJob();
                     });
@@ -161,7 +178,7 @@ public class AccuweatherStationHandler extends BaseThingHandler {
 
     private boolean hasAdminCode() {
         Integer configAdminCode = config.adminCode;
-        if (configAdminCode == null || configAdminCode == 0) {
+        if (Objects.isNull(configAdminCode) || configAdminCode == 0) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Missing administration code");
             return false;
         }
@@ -187,6 +204,17 @@ public class AccuweatherStationHandler extends BaseThingHandler {
             // TODO(denisacostaq@gmail.com): optimize querying the current status
             updateStatus(ThingStatus.ONLINE);
             updateState(CH_TEMPERATURE, new DecimalType(temp));
+        }
+    }
+
+    private void setObservationTime(@Nullable Date date) {// TODO(denisacostaq@gmail.com): change to be based on
+                                                          // exceptions
+        if (Objects.isNull(date)) {
+            updateStatus(ThingStatus.OFFLINE);
+        } else {
+            DateTimeType dateTimeType = new DateTimeType(ZonedDateTime.ofInstant(date.toInstant(), ZoneOffset.UTC)
+                    .withZoneSameInstant(ZoneId.systemDefault()));
+            updateState(CH_OBSERVATION_TIME, dateTimeType);
         }
     }
 

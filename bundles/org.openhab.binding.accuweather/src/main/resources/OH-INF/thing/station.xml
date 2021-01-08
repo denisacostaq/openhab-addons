@@ -12,9 +12,9 @@
 
 		<label>Virtual Station</label>
 		<description>Accuweather Station</description>
-		<channels>
-			<channel id="temperature" typeId="temperature-channel"/>
-		</channels>
+		<channel-groups>
+			<channel-group id="current" typeId="current-group"/>
+		</channel-groups>
 		<config-description-ref uri="thing-type:accuweather:station"/>
 	</thing-type>
 

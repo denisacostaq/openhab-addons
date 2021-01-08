@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="accuweather"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+
+	<!-- Groups -->
+	<channel-group-type id="current-group">
+		<label>Current Weather</label>
+		<description>This is the current weather.</description>
+		<channels>
+			<channel id="observation_time" typeId="observation_time-channel"/>
+			<channel id="temperature" typeId="temperature-channel"/>
+		</channels>
+	</channel-group-type>
+</thing:thing-descriptions>

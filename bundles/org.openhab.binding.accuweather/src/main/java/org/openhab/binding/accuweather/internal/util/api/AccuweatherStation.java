@@ -58,14 +58,15 @@ public class AccuweatherStation implements WeatherStation {
     }
 
     @Override
-    @Nullable // FIXME(denisacostaq@gmail.com): remove this
-    public Float getHumidity() {
-        return null;
+    @Nullable
+    public Date getCurrentTime() throws RemoteErrorResponseException {
+        CurrentConditions currentConditions = currentConditions();
+        return Objects.isNull(currentConditions) ? null : currentConditions.localObservationDateTime;
     }
 
     @Override
     @Nullable // FIXME(denisacostaq@gmail.com): remove this
-    public Date getCurrentTime() {
+    public Float getHumidity() {
         return null;
     }
 
@@ -78,7 +79,8 @@ public class AccuweatherStation implements WeatherStation {
     }
 
     @Override
-    public boolean verifyStationConfigParams(String countryCode, Integer adminCode, String cityName) throws RemoteErrorResponseException {
+    public boolean verifyStationConfigParams(String countryCode, Integer adminCode, String cityName)
+            throws RemoteErrorResponseException {
         String oldCountryCode = this.countryCode;
         Integer oldAdminCode = this.adminCode;
         String oldCityName = this.cityName;
@@ -102,7 +104,8 @@ public class AccuweatherStation implements WeatherStation {
                         countryCode, adminCode, cityName);
             }
         } catch (RemoteErrorResponseException e) {
-            logger.warn("unable to validate {} config params {}", AccuweatherStation.class.getSimpleName(), e.getMessage());
+            logger.warn("unable to validate {} config params {}", AccuweatherStation.class.getSimpleName(),
+                    e.getMessage());
             throw e;
         } finally {
             if (!Objects.isNull(currentConditions)) {

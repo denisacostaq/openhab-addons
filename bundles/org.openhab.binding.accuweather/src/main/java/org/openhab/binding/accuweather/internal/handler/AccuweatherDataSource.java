@@ -12,10 +12,11 @@
  */
 package org.openhab.binding.accuweather.internal.handler;
 
+import java.util.Date;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import javax.validation.constraints.NotNull;
 
@@ -50,11 +51,11 @@ public class AccuweatherDataSource {
      * Start the event listener for the Ambient Weather real-time API
      */
     @NotNull
-    public ScheduledFuture<?> start(Consumer<Float> callback, Command cancel) {
+    public ScheduledFuture<?> start(BiConsumer<Float, Date> callback, Command cancel) {
         logger.warn("AccuweatherClient: Start pooling");
         return this.scheduler.scheduleAtFixedRate(() -> {
             try {
-                callback.accept(weatherStation.getTemperature());
+                callback.accept(weatherStation.getTemperature(), weatherStation.getCurrentTime());
             } catch (RemoteErrorResponseException e) {
                 logger.warn("unable to get temperature, details: {}", e.getMessage());
                 switch (e.status()) {
