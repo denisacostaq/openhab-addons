@@ -83,7 +83,11 @@ public class AccuweatherHandlerFactory extends BaseThingHandlerFactory {
         this.locationProvider = locationProvider;
         this.unitProvider = unitProvider;
         this.timeZoneProvider = timeZoneProvider;
-        this.httpClient = new HttpClient();
+        org.eclipse.jetty.client.HttpClient client = new org.eclipse.jetty.client.HttpClient();
+        client.setConnectTimeout(HttpClient.DEVICES_API_TIMEOUT);
+        client.setIdleTimeout(HttpClient.DEVICES_API_TIMEOUT);
+        client.start();
+        this.httpClient = new HttpClient(client);
         this.httpApiClient = new AccuweatherHttpApiClient(geoInfo, locationProvider, httpClient, mapper, cache);
     }
 

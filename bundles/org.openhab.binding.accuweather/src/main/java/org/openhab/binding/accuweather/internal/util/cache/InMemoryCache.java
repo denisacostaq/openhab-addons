@@ -16,6 +16,7 @@ package org.openhab.binding.accuweather.internal.util.cache;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.accuweather.internal.interfaces.Cache;
 
 /**
@@ -24,6 +25,7 @@ import org.openhab.binding.accuweather.internal.interfaces.Cache;
  *
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
+@NonNullByDefault
 public class InMemoryCache<T> implements Cache<T> {
     Map<String, T> data = new HashMap<>();
 

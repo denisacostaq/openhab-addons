@@ -33,6 +33,8 @@ import org.slf4j.LoggerFactory;
  */
 public class HttpClient implements HttpClientRawInterface {
     private final Logger logger = LoggerFactory.getLogger(HttpClient.class);
+    private org.eclipse.jetty.client.HttpClient client;
+
 
     // Timeout of the call to the Ambient Weather devices API
     // FIXME(denisacostaq@gmail.com): more semantic
@@ -40,13 +42,9 @@ public class HttpClient implements HttpClientRawInterface {
 
     // Time to wait after failed key validation
     public static final long KEY_VALIDATION_DELAY = 60L;
-    private org.eclipse.jetty.client.HttpClient client;
 
-    public HttpClient() throws Exception {
-        this.client = new org.eclipse.jetty.client.HttpClient();
-        this.client.setConnectTimeout(DEVICES_API_TIMEOUT);
-        this.client.setIdleTimeout(DEVICES_API_TIMEOUT);
-        client.start();
+    public HttpClient(org.eclipse.jetty.client.HttpClient httpClient) {
+        this.client = httpClient;
     }
 
     /**

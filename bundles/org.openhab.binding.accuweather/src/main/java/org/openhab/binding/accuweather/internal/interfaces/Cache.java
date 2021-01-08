@@ -13,11 +13,14 @@
 
 package org.openhab.binding.accuweather.internal.interfaces;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+
 /**
  * The {@link Cache} is the specification to keep values.
  *
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
+@NonNullByDefault
 public interface Cache<T> {
 
     /**
