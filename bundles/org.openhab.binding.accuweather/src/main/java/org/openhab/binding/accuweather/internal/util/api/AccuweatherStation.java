@@ -78,7 +78,7 @@ public class AccuweatherStation implements WeatherStation {
     }
 
     @Override
-    public boolean verifyStationConfigParams(String countryCode, Integer adminCode, String cityName) {
+    public boolean verifyStationConfigParams(String countryCode, Integer adminCode, String cityName) throws RemoteErrorResponseException {
         String oldCountryCode = this.countryCode;
         Integer oldAdminCode = this.adminCode;
         String oldCityName = this.cityName;
@@ -102,7 +102,8 @@ public class AccuweatherStation implements WeatherStation {
                         countryCode, adminCode, cityName);
             }
         } catch (RemoteErrorResponseException e) {
-            logger.debug("unable to validate api key {}", e.getMessage());
+            logger.warn("unable to validate {} config params {}", AccuweatherStation.class.getSimpleName(), e.getMessage());
+            throw e;
         } finally {
             if (!Objects.isNull(currentConditions)) {
                 this.countryCode = oldCountryCode;

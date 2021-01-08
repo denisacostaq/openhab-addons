@@ -48,5 +48,5 @@ public interface WeatherStation {
     @Nullable
     Boolean hasPrecipitation() throws RemoteErrorResponseException;
 
-    boolean verifyStationConfigParams(String countryCode, Integer adminCode, String cityName);
+    boolean verifyStationConfigParams(String countryCode, Integer adminCode, String cityName) throws RemoteErrorResponseException;
 }

@@ -15,8 +15,10 @@ package org.openhab.binding.accuweather.internal.handler;
 
 import static org.openhab.binding.accuweather.internal.AccuweatherBindingConstants.CH_TEMPERATURE;
 
+import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -50,6 +52,7 @@ public class AccuweatherStationHandler extends BaseThingHandler {
     private String countryCode = "";
     private Integer adminCode = 0;
     private String cityName = "";
+    private static final Duration STATION_VALIDATION_DELAY = Duration.ofMillis(3000);
 
     /**
      * Creates a new instance of this class for the {@link Thing}.
@@ -70,22 +73,11 @@ public class AccuweatherStationHandler extends BaseThingHandler {
                 setThingOfflineWithCommError("bridge is offline");
                 return;
             }
-            updateStatus(getBridge().getStatus());
             if (!hasRequiredFields()) {
                 setThingOfflineWithConfError("some required config fields are missing");
                 return;
             }
-            if (weatherStation.verifyStationConfigParams(countryCode, adminCode, cityName)) {
-                updateStatus(ThingStatus.ONLINE);
-                poolingJob = new AccuweatherDataSource(scheduler, weatherStation).start((temp) -> {
-                    setTemperature(temp);
-                }, () -> {
-                    this.cancelPoolingJob();
-                });
-            } else {
-                // FIXME(denisacostaq@gmail.com): fix this handling
-                setThingOfflineWithCommError("unable to get city key for the configured parameters");
-            }
+            this.scheduleValidateStationParams(Duration.ZERO);
         });
     }
 
@@ -93,13 +85,6 @@ public class AccuweatherStationHandler extends BaseThingHandler {
     public void dispose() {
         super.dispose();
         this.cancelPoolingJob();
-    }
-
-    private void cancelPoolingJob() {
-        if (!Objects.isNull(this.poolingJob) && !this.poolingJob.isCancelled()) {
-            logger.trace("cancelling the background poller");
-            this.poolingJob.cancel(false);
-        }
     }
 
     @Override
@@ -114,6 +99,49 @@ public class AccuweatherStationHandler extends BaseThingHandler {
                     logger.warn("unable to get temperature, details: {}", e.getMessage());
                 }
             }
+        }
+    }
+
+    /**
+     * this function have a retry policy for key validation
+     * @param delay wait a moment before trying to validate the cache
+     */
+    private void scheduleValidateStationParams(Duration delay) {
+        logger.warn("scheduleValidateApiKey");
+        scheduler.schedule(() -> {
+            final String genericErrMsg = "unable to validate station config params";
+            try {
+                if (weatherStation.verifyStationConfigParams(countryCode, adminCode, cityName)) {
+                    updateStatus(ThingStatus.ONLINE);
+                    poolingJob = new AccuweatherDataSource(scheduler, weatherStation).start((temp) -> {
+                        setTemperature(temp);
+                    }, () -> {
+                        this.cancelPoolingJob();
+                    });
+                } else {
+                    setThingOfflineWithCommError("unable to validate configured parameters");
+                }
+            } catch (RemoteErrorResponseException e) {
+                if (Objects.equals(e.status(), RemoteErrorResponseException.StatusType.BAD_SERVER)) {
+                    logger.debug("remote server error, rescheduling station config parameters validation in {} seconds",
+                            STATION_VALIDATION_DELAY.toSeconds());
+                    setThingOfflineWithCommError(genericErrMsg);
+                    this.scheduleValidateStationParams(STATION_VALIDATION_DELAY);
+                } else if (Objects.equals(e.status(), RemoteErrorResponseException.StatusType.BAD_CREDENTIALS)) {
+                    logger.debug("Invalid API Key for accuweather.com, control flow should not reach this point");
+                    setThingOfflineWithCommError("The provided accuweather.com API key looks invalid, please check it");
+                } else {
+                    // FIXME(denisacostaq@gmail.com): consider max rate reached
+                    logger.debug("Invalid state, please contact the developer");
+                }
+            }
+        }, delay.toMillis(), TimeUnit.MILLISECONDS);
+    }
+
+    private void cancelPoolingJob() {
+        if (!Objects.isNull(this.poolingJob) && !this.poolingJob.isCancelled()) {
+            logger.trace("cancelling the background poller");
+            this.poolingJob.cancel(false);
         }
     }
 
