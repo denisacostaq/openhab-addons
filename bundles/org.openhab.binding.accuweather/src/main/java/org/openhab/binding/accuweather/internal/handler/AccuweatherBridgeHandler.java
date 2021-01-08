@@ -14,12 +14,15 @@ package org.openhab.binding.accuweather.internal.handler;
 
 import static org.openhab.binding.accuweather.internal.AccuweatherBindingConstants.UID_STATION;
 
+import java.time.Duration;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.accuweather.internal.config.AccuweatherBridgeConfiguration;
+import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
 import org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiClient;
 import org.openhab.core.thing.*;
 import org.openhab.core.thing.binding.BaseBridgeHandler;
@@ -40,6 +43,7 @@ public class AccuweatherBridgeHandler extends BaseBridgeHandler {
 
     private final Logger logger = LoggerFactory.getLogger(AccuweatherBridgeHandler.class);
     private final AccuweatherHttpApiClient accuweatherHttpApiClient;
+    private static final Duration KEY_VALIDATION_DELAY = Duration.ofMillis(3000);
 
     private @Nullable AccuweatherBridgeConfiguration config;
 
@@ -63,12 +67,7 @@ public class AccuweatherBridgeHandler extends BaseBridgeHandler {
                 setThingOfflineWithConfError("some required config fields are missing");
                 return;
             }
-            if (accuweatherHttpApiClient.verifyHttpApiKey(apiKey)) {
-                updateStatus(ThingStatus.ONLINE);
-            } else {
-                // FIXME(denisacostaq@gmail.com): fix this handling, retry policy
-                setThingOfflineWithCommError("unable to validate accuweather.com API Key");
-            }
+            scheduleValidateApiKey(Duration.ZERO);
         });
     }
 
@@ -78,9 +77,40 @@ public class AccuweatherBridgeHandler extends BaseBridgeHandler {
         if (logger.isTraceEnabled() || UID_STATION.equals(childThing.getThingTypeUID())) {
             AccuweatherStationHandler accuweatherStationHandler = (AccuweatherStationHandler) childHandler;
             Thing thing = accuweatherStationHandler.getThing();
-            logger.trace("chield handler initialized for bridge, thing type {}, thing {}", thing.getThingTypeUID(),
+            logger.trace("child handler initialized for bridge, thing type {}, thing {}", thing.getThingTypeUID(),
                     thing.getUID());
         }
+    }
+
+    /**
+     * this function have a retry policy for key validation
+     * @param delay wait a moment before trying to validate the cache
+     */
+    private void scheduleValidateApiKey(Duration delay) {
+        logger.warn("scheduleValidateApiKey");
+        scheduler.schedule(() -> {
+            final String genericErrMsg = "unable to validate accuweather.com API Key";
+            try {
+                if (accuweatherHttpApiClient.verifyHttpApiKey(apiKey)) {
+                    updateStatus(ThingStatus.ONLINE);
+                } else {
+                    setThingOfflineWithCommError(genericErrMsg);
+                }
+            } catch (RemoteErrorResponseException e) {
+                if (Objects.equals(e.status(), RemoteErrorResponseException.StatusType.BAD_SERVER)) {
+                    logger.debug("remote server error, rescheduling key validation in {} seconds",
+                            KEY_VALIDATION_DELAY.toSeconds());
+                    setThingOfflineWithCommError(genericErrMsg);
+                    this.scheduleValidateApiKey(KEY_VALIDATION_DELAY);
+                } else if (Objects.equals(e.status(), RemoteErrorResponseException.StatusType.BAD_CREDENTIALS)) {
+                    logger.debug("Invalid API Key for accuweather.com");
+                    setThingOfflineWithCommError("The provided accuweather.com API key looks invalid, please check it");
+                } else {
+                    // FIXME(denisacostaq@gmail.com): consider max rate reached
+                    logger.debug("Invalid state, please contact the developer");
+                }
+            }
+        }, delay.toMillis(), TimeUnit.MILLISECONDS);
     }
 
     private boolean hasRequiredFields() {

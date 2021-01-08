@@ -35,7 +35,6 @@ public class HttpClient implements HttpClientRawInterface {
     private final Logger logger = LoggerFactory.getLogger(HttpClient.class);
     private org.eclipse.jetty.client.HttpClient client;
 
-
     // Timeout of the call to the Ambient Weather devices API
     // FIXME(denisacostaq@gmail.com): more semantic
     public static final int DEVICES_API_TIMEOUT = 20000;

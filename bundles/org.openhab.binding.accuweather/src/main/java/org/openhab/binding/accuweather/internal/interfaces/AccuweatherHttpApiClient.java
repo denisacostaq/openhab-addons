@@ -40,5 +40,5 @@ public interface AccuweatherHttpApiClient {
 
     List<CitySearchResult> getNeighborsCities(CitySearchResult cityQuery) throws RemoteErrorResponseException;
 
-    boolean verifyHttpApiKey(String apiKey);
+    boolean verifyHttpApiKey(String apiKey) throws RemoteErrorResponseException;
 }

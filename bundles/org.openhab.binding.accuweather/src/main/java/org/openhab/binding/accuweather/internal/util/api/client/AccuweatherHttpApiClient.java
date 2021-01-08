@@ -174,7 +174,7 @@ public class AccuweatherHttpApiClient
         return citySearchResults;
     }
 
-    public boolean verifyHttpApiKey(String apiKey) {
+    public boolean verifyHttpApiKey(String apiKey) throws RemoteErrorResponseException {
         String countryCode = geoInfo.getCountryDomainName(locationProvider.getLocation());
         String oldApiKey = this.apiKey;
         this.apiKey = apiKey;
@@ -182,7 +182,8 @@ public class AccuweatherHttpApiClient
         try {
             adminAreas = getAdminAreas(countryCode);
         } catch (RemoteErrorResponseException e) {
-            logger.warn("unable to validate api key: {}", e.getMessage());
+            logger.debug("Exception trying to get admin areas for country code {}: {}", countryCode, e.getMessage());
+            throw e;
         } finally {
             if (Objects.isNull(adminAreas) || adminAreas.isEmpty()) {
                 this.apiKey = oldApiKey;
