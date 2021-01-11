@@ -24,7 +24,6 @@ import org.openhab.binding.accuweather.internal.discovery.AccuweatherDiscoverySe
 import org.openhab.binding.accuweather.internal.interfaces.Cache;
 import org.openhab.binding.accuweather.internal.interfaces.GeoInfo;
 import org.openhab.binding.accuweather.internal.util.api.AccuweatherStation;
-import org.openhab.binding.accuweather.internal.util.api.GeoInfoImpl;
 import org.openhab.binding.accuweather.internal.util.api.client.AccuweatherHttpApiClient;
 import org.openhab.binding.accuweather.internal.util.api.client.HttpClient;
 import org.openhab.binding.accuweather.internal.util.api.client.ObjectMapper;
@@ -69,11 +68,11 @@ public class AccuweatherHandlerFactory extends BaseThingHandlerFactory {
     private final LocationProvider locationProvider;
     private final UnitProvider unitProvider;
     private final TimeZoneProvider timeZoneProvider;
-    private final GeoInfo geoInfo = new GeoInfoImpl();
     private final ObjectMapper mapper = new ObjectMapper();
     private final Cache cache = new InMemoryCache();
     private final HttpClient httpClient;
-    private final AccuweatherHttpApiClient httpApiClient;
+    private final org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiClient httpApiClient;
+    private final GeoInfo geoInfo;
 
     @Activate
     public AccuweatherHandlerFactory(final @Reference LocaleProvider localeProvider,
@@ -88,7 +87,8 @@ public class AccuweatherHandlerFactory extends BaseThingHandlerFactory {
         client.setIdleTimeout(HttpClient.DEVICES_API_TIMEOUT);
         client.start();
         this.httpClient = new HttpClient(client);
-        this.httpApiClient = new AccuweatherHttpApiClient(geoInfo, locationProvider, httpClient, mapper, cache);
+        this.httpApiClient = new AccuweatherHttpApiClient(locationProvider, httpClient, mapper, cache);
+        this.geoInfo = (GeoInfo) httpApiClient;
     }
 
     @Override
@@ -101,7 +101,7 @@ public class AccuweatherHandlerFactory extends BaseThingHandlerFactory {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
         if (UID_BRIDGE.equals(thingTypeUID)) {
             BaseBridgeHandler handler = new AccuweatherBridgeHandler((Bridge) thing, httpApiClient);
-            registerDiscoveryService(handler.getThing().getUID(), httpApiClient);
+            registerDiscoveryService(handler.getThing().getUID());
             return handler;
         } else if (UID_STATION.equals(thingTypeUID)) {
             AccuweatherStation accuweatherStation = new AccuweatherStation(httpApiClient);
@@ -117,8 +117,7 @@ public class AccuweatherHandlerFactory extends BaseThingHandlerFactory {
         }
     }
 
-    private synchronized void registerDiscoveryService(ThingUID bridgeUID,
-            org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiClient httpApiClient) {
+    private synchronized void registerDiscoveryService(ThingUID bridgeUID) {
         logger.trace("registering {}", this.getClass().getName());
         AccuweatherDiscoveryService discoveryService = new AccuweatherDiscoveryService(locationProvider, httpApiClient,
                 geoInfo, bridgeUID);

@@ -88,7 +88,6 @@ public class AccuweatherBridgeHandler extends BaseBridgeHandler {
      * @param delay wait a moment before trying to validate the cache
      */
     private void scheduleValidateApiKey(Duration delay) {
-        logger.warn("scheduleValidateApiKey");
         scheduler.schedule(() -> {
             final String genericErrMsg = "unable to validate accuweather.com API Key";
             try {

@@ -123,7 +123,7 @@ public class AccuweatherStationHandler extends BaseThingHandler {
      * @param delay wait a moment before trying to validate the cache
      */
     private void scheduleValidateStationParams(Duration delay) {
-        logger.warn("scheduleValidateApiKey");
+        logger.trace("validating API Key in {} seconds", delay.toSeconds());
         scheduler.schedule(() -> {
             final String genericErrMsg = "unable to validate station config params";
             try {

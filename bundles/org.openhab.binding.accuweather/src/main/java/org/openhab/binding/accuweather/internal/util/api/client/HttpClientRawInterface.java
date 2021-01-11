@@ -35,4 +35,7 @@ public interface HttpClientRawInterface {
 
     String getCurrentConditions(String cityKey, String apiKey)
             throws HttpErrorResponseException, RemoteErrorResponseException;
+
+    String geoPositionSearch(Float latitude, Float longitude, String apiKey)
+            throws HttpErrorResponseException, RemoteErrorResponseException;
 }

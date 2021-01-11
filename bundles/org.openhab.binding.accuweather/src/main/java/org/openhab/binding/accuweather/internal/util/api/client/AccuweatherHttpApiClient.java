@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Objects;
 
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
@@ -29,6 +30,7 @@ import org.openhab.binding.accuweather.internal.model.pojo.AdministrativeArea;
 import org.openhab.binding.accuweather.internal.model.pojo.CitySearchResult;
 import org.openhab.binding.accuweather.internal.model.pojo.CurrentConditions;
 import org.openhab.core.i18n.LocationProvider;
+import org.openhab.core.library.types.PointType;
 import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +43,7 @@ import org.slf4j.LoggerFactory;
  */
 @NonNullByDefault
 public class AccuweatherHttpApiClient
-        implements org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiClient {
+        implements org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiClient, GeoInfo {
     private final Logger logger = LoggerFactory.getLogger(AccuweatherHttpApiClient.class);
 
     private final LocationProvider locationProvider;
@@ -51,14 +53,14 @@ public class AccuweatherHttpApiClient
     private final GeoInfo geoInfo;
     String apiKey = "";
 
-    public AccuweatherHttpApiClient(final @Reference GeoInfo geoInfo,
-            final @Reference LocationProvider locationProvider, final @Reference HttpClientRawInterface httpClientRaw,
-            final @Reference ObjectMapper mapper, final @Reference Cache cache) {
+    public AccuweatherHttpApiClient(final @Reference LocationProvider locationProvider,
+            final @Reference HttpClientRawInterface httpClientRaw, final @Reference ObjectMapper mapper,
+            final @Reference Cache cache) {
         this.locationProvider = locationProvider;
         this.httpClientRaw = httpClientRaw;
         this.mapper = mapper;
         this.cache = cache;
-        this.geoInfo = geoInfo;
+        this.geoInfo = this;
     }
 
     @Override
@@ -176,6 +178,10 @@ public class AccuweatherHttpApiClient
 
     public boolean verifyHttpApiKey(String apiKey) throws RemoteErrorResponseException {
         String countryCode = geoInfo.getCountryDomainName(locationProvider.getLocation());
+        if (StringUtils.isEmpty(countryCode)) {
+            // NOTE(denisacostaq@gmail.com): this is required even if there is not location provider available
+            countryCode = "BG";
+        }
         String oldApiKey = this.apiKey;
         this.apiKey = apiKey;
         List<AdministrativeArea> adminAreas = null;
@@ -206,5 +212,61 @@ public class AccuweatherHttpApiClient
 
     private String adminAreasCacheKey(@NotNull String countryDomainName) {
         return String.format("%s/%s", this.apiKey, countryDomainName);
+    }
+
+    /**********************************************************************************/
+    /****************************** GeoInfo *************************/
+    /**********************************************************************************/
+
+    private CitySearchResult citySearchByCoordinates(@Nullable PointType location) throws RemoteErrorResponseException {
+        Float latitude = location.getLatitude().floatValue();
+        Float longitude = location.getLongitude().floatValue();
+        String key = geoPositionSearchCacheKey(latitude, longitude);
+        // FIXME(denisacostaq@gmail.com): consider expired here, priority of null vs rate vs cache
+        String citySearch = (String) cache.getValue(key);
+        boolean notFoundInCache = StringUtils.isEmpty(citySearch);
+        CitySearchResult citySearchResult;
+        if (notFoundInCache) {
+            logger.trace("invalid cache value, getting a new one");
+            try {
+                citySearch = httpClientRaw.geoPositionSearch(latitude, longitude, this.apiKey);
+            } catch (HttpErrorResponseException e) {
+                logger.warn("unable to get cities from coordinates, details:\n{}", e.toString());
+                throw new RemoteErrorResponseException(e);
+            }
+        } else {
+            logger.trace("using previous value from cache");
+        }
+        citySearchResult = mapper.deserializeSingleCitySearchResult(citySearch);
+        if (notFoundInCache) {
+            cache.setValue(key, citySearch);
+        }
+        logger.trace("getting {} city for latitude {} and longitude {}", citySearchResult.englishName,
+                location.getLatitude().floatValue(), location.getLongitude().floatValue());
+        return citySearchResult;
+    }
+
+    @Override
+    public String getCityName(@Nullable PointType location) throws RemoteErrorResponseException {
+        return citySearchByCoordinates(location).englishName;
+    }
+
+    @Override
+    public String getCountryName(@Nullable PointType location) throws RemoteErrorResponseException {
+        return citySearchByCoordinates(location).country.englishName;
+    }
+
+    @Override
+    public String getCountryDomainName(@Nullable PointType location) throws RemoteErrorResponseException {
+        return citySearchByCoordinates(location).country.iD;
+    }
+
+    @Override
+    public String getAdministrativeArea(@Nullable PointType location) throws RemoteErrorResponseException {
+        return citySearchByCoordinates(location).administrativeArea.englishName;
+    }
+
+    private String geoPositionSearchCacheKey(@NotNull Float latitude, @NonNull Float longitude) {
+        return String.format("%s/%f/%f", this.apiKey, latitude, longitude);
     }
 }

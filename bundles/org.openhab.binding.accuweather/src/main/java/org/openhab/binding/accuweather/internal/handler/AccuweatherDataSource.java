@@ -52,7 +52,7 @@ public class AccuweatherDataSource {
      */
     @NotNull
     public ScheduledFuture<?> start(BiConsumer<Float, Date> callback, Command cancel) {
-        logger.warn("AccuweatherClient: Start pooling");
+        logger.debug("AccuweatherClient: Start pooling");
         return this.scheduler.scheduleAtFixedRate(() -> {
             try {
                 callback.accept(weatherStation.getTemperature(), weatherStation.getCurrentTime());

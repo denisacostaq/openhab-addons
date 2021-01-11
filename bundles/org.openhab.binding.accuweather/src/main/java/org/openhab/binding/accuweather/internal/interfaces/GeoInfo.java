@@ -15,6 +15,7 @@ package org.openhab.binding.accuweather.internal.interfaces;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
 import org.openhab.core.library.types.PointType;
 
 /**
@@ -24,11 +25,11 @@ import org.openhab.core.library.types.PointType;
  */
 @NonNullByDefault
 public interface GeoInfo {
-    String getCityName(@Nullable PointType location);
+    String getCityName(@Nullable PointType location) throws RemoteErrorResponseException;
 
-    String getCountryName(@Nullable PointType location);
+    String getCountryName(@Nullable PointType location) throws RemoteErrorResponseException;
 
-    String getCountryDomainName(@Nullable PointType location);
+    String getCountryDomainName(@Nullable PointType location) throws RemoteErrorResponseException;
 
-    String getAdministrativeArea(@Nullable PointType location);
+    String getAdministrativeArea(@Nullable PointType location) throws RemoteErrorResponseException;
 }

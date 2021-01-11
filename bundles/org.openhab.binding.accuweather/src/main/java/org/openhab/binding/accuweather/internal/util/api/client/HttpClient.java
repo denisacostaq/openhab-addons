@@ -169,4 +169,16 @@ public class HttpClient implements HttpClientRawInterface {
         logger.debug("Bridge: Getting current conditions");
         return makeGetHttpRequest(url);
     }
+
+    @Override
+    public String geoPositionSearch(Float latitude, Float longitude, String apiKey)
+            throws HttpErrorResponseException, RemoteErrorResponseException {
+        final String GEO_POSITION_SEARCH_URL = "http://dataservice.accuweather.com/locations/v1/cities/geoposition/search?apikey=%API_KEY%&q=%LATITUDE%%2C%LONGITUDE%";
+        String url = GEO_POSITION_SEARCH_URL.replace("%API_KEY%", apiKey)
+                .replace("%LATITUDE%", String.valueOf(latitude)).replace("%LATITUDE%", String.valueOf(longitude));
+        // FIXME(denisacostaq@gmail.com): Use the builded url instead
+        url = "http://localhost:8000/Geoposition_Search.json";
+        logger.debug("Bridge: Getting location from coordinates");
+        return makeGetHttpRequest(url);
+    }
 }

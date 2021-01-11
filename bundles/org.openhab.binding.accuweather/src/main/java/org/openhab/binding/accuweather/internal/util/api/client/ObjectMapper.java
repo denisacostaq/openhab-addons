@@ -48,6 +48,18 @@ public class ObjectMapper {
         return null;
     }
 
+    public CitySearchResult deserializeSingleCitySearchResult(String json) {
+        try {
+            return gson.fromJson(json, CitySearchResult.class);
+        } catch (JsonSyntaxException e) {
+            logger.debug("Got JsonSyntaxException: {}", e.getMessage());
+            // FIXME(denisacostaq@gmail.com): setThingOfflineWithCommError(e.getMessage(), "Error parsing json
+            // response");
+            // rescheduleValidateKeysJob();
+        }
+        return null;
+    }
+
     public List<AdministrativeArea> deserializeAdminAreasResult(String json) {
         try {
             return Arrays.stream(gson.fromJson(json, AdministrativeArea[].class)).collect(Collectors.toList());
