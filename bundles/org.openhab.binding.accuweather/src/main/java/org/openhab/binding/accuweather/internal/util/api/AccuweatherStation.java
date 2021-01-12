@@ -79,6 +79,18 @@ public class AccuweatherStation implements WeatherStation {
     }
 
     @Override
+    public @Nullable String getPrecipitationType() throws RemoteErrorResponseException {
+        if (hasPrecipitation()) {
+            CitySearchResult city = new CitySearchResult(cityKey, cityName);
+            CurrentConditions currentConditions = httpClient.currentConditions(city);
+            // TODO(denisacostaq@gmail.com): currentConditions.precipitationType != nul
+            return currentConditions.precipitationType.toString();
+        } else {
+            return "None"; // TODO(denisacostaq@gmail.com): named var
+        }
+    }
+
+    @Override
     public boolean verifyStationConfigParams(String countryCode, Integer adminCode, String cityName)
             throws RemoteErrorResponseException {
         String oldCountryCode = this.countryCode;

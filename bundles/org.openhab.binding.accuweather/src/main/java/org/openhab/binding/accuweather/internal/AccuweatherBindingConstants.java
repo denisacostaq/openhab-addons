@@ -35,4 +35,5 @@ public class AccuweatherBindingConstants {
     // List of all Channel ids
     public static final String CH_TEMPERATURE = "temperature";
     public static final String CH_OBSERVATION_TIME = "observation_time";
+    public static final String CH_PRECIPITATION_TYPE = "precipitation_type";
 }

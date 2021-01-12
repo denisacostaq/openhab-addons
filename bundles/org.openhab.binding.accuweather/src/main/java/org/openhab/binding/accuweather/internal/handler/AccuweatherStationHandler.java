@@ -13,8 +13,7 @@
 
 package org.openhab.binding.accuweather.internal.handler;
 
-import static org.openhab.binding.accuweather.internal.AccuweatherBindingConstants.CH_OBSERVATION_TIME;
-import static org.openhab.binding.accuweather.internal.AccuweatherBindingConstants.CH_TEMPERATURE;
+import static org.openhab.binding.accuweather.internal.AccuweatherBindingConstants.*;
 
 import java.time.*;
 import java.util.Date;
@@ -32,6 +31,7 @@ import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseEx
 import org.openhab.binding.accuweather.internal.interfaces.WeatherStation;
 import org.openhab.core.library.types.DateTimeType;
 import org.openhab.core.library.types.DecimalType;
+import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
@@ -92,10 +92,10 @@ public class AccuweatherStationHandler extends BaseThingHandler {
         this.cancelPoolingJob();
     }
 
-    @Override
-    public void handleCommand(ChannelUID channelUID, Command command) {
-        if (CH_TEMPERATURE.equals(channelUID.getId())) {
-            if (command instanceof RefreshType) {
+    private void refreshChanel(ChannelUID channelUID) {
+        logger.warn("refreshChanel {}", channelUID);
+        switch (channelUID.getId()) {
+            case CH_TEMPERATURE:
                 try {
                     setTemperature(weatherStation.getTemperature());
                 } catch (RemoteErrorResponseException e) {
@@ -103,9 +103,8 @@ public class AccuweatherStationHandler extends BaseThingHandler {
                     // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
                     logger.warn("unable to get temperature, details: {}", e.getMessage());
                 }
-            }
-        } else if (CH_OBSERVATION_TIME.equals(channelUID.getId())) {
-            if (command instanceof RefreshType) {
+                break;
+            case CH_OBSERVATION_TIME:
                 try {
                     setObservationTime(weatherStation.getCurrentTime());
                 } catch (RemoteErrorResponseException e) {
@@ -113,7 +112,27 @@ public class AccuweatherStationHandler extends BaseThingHandler {
                     // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
                     logger.warn("unable to get temperature, details: {}", e.getMessage());
                 }
-            }
+                break;
+            case CH_PRECIPITATION_TYPE:
+                try {
+                    setPrecipitationType(weatherStation.getPrecipitationType());
+                } catch (RemoteErrorResponseException e) {
+                    // TODO(denisacostaq@gmail.com):
+                    // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+                    logger.warn("unable to get precipitation type, details: {}", e.getMessage());
+                }
+                break;
+            default:
+                logger.trace("channel UID {} not handled in refresh", channelUID.toString());
+                break;
+        }
+    }
+
+    @Override
+    public void handleCommand(ChannelUID channelUID, Command command) {
+        logger.warn("handleCommand channelUID {} command {}", channelUID, command);
+        if (command instanceof RefreshType) {
+            refreshChanel(channelUID);
         }
     }
 
@@ -198,7 +217,7 @@ public class AccuweatherStationHandler extends BaseThingHandler {
 
     private void setTemperature(@Nullable Float temp) {
         // TODO(denisacostaq@gmail.com): change to be based on exceptions
-        if (temp == null) {
+        if (Objects.isNull(temp)) {
             updateStatus(ThingStatus.OFFLINE);
         } else {
             // TODO(denisacostaq@gmail.com): optimize querying the current status
@@ -207,8 +226,8 @@ public class AccuweatherStationHandler extends BaseThingHandler {
         }
     }
 
-    private void setObservationTime(@Nullable Date date) {// TODO(denisacostaq@gmail.com): change to be based on
-                                                          // exceptions
+    private void setObservationTime(@Nullable Date date) {
+        // TODO(denisacostaq@gmail.com): change to be based on exceptions
         if (Objects.isNull(date)) {
             updateStatus(ThingStatus.OFFLINE);
         } else {

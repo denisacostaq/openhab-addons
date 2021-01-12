@@ -31,6 +31,7 @@ public class CurrentConditions {
     public int weatherIcon;
     @SerializedName(value = "HasPrecipitation")
     public boolean hasPrecipitation;
+    @SerializedName(value = "PrecipitationType")
     public Object precipitationType;
     public boolean isDayTime;
     @SerializedName(value = "Temperature")
