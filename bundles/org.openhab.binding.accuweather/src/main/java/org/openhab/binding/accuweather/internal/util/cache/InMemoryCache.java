@@ -15,40 +15,51 @@ package org.openhab.binding.accuweather.internal.util.cache;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.accuweather.internal.interfaces.Cache;
 
 /**
  * The {@link InMemoryCache} is a simple in memory implementation of the {@link Cache} based in
- * a HasMap.
+ * a HasMap. This implementation is safe to use in concurrency conditions.
  *
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
 @NonNullByDefault
 public class InMemoryCache<T> implements Cache<T> {
     Map<String, T> data = new HashMap<>();
+    ReadWriteLock lock = new ReentrantReadWriteLock();
 
     @Override
     public T getValue(String key) {
-        return data.get(key);
+        lock.readLock().lock();
+        T t = data.get(key);
+        lock.readLock().unlock();
+        return t;
     }
 
     @Override
     public void setValue(String key, T obj) {
+        lock.writeLock().lock();
         data.put(key, obj);
+        lock.writeLock().unlock();
     }
 
     @Override
     // FIXME(denisacostaq@gmail.com): Invalidate key
     public void invalidateValue(String key) {
+        lock.writeLock().lock();
         data.remove(key);
+        lock.writeLock().unlock();
     }
 
     @Override
     public void invalidateCache() {
-        for (String key : data.keySet()) {
-            invalidateValue(key);
-        }
+        lock.writeLock().lock();
+        data.keySet().stream().collect(Collectors.toSet()).stream().forEach(key -> invalidateValue(key));
+        lock.writeLock().unlock();
     }
 }
