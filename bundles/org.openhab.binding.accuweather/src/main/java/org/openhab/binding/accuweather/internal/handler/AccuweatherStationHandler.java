@@ -32,10 +32,7 @@ import org.openhab.binding.accuweather.internal.interfaces.WeatherStation;
 import org.openhab.core.library.types.DateTimeType;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.StringType;
-import org.openhab.core.thing.ChannelUID;
-import org.openhab.core.thing.Thing;
-import org.openhab.core.thing.ThingStatus;
-import org.openhab.core.thing.ThingStatusDetail;
+import org.openhab.core.thing.*;
 import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
@@ -93,11 +90,10 @@ public class AccuweatherStationHandler extends BaseThingHandler {
     }
 
     private void refreshChanel(ChannelUID channelUID) {
-        logger.warn("refreshChanel {}", channelUID);
-        switch (channelUID.getId()) {
+        switch (channelUID.getIdWithoutGroup()) {
             case CH_TEMPERATURE:
                 try {
-                    setTemperature(weatherStation.getTemperature());
+                    setTemperature(channelUID, weatherStation.getTemperature());
                 } catch (RemoteErrorResponseException e) {
                     // TODO(denisacostaq@gmail.com):
                     // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
@@ -106,7 +102,7 @@ public class AccuweatherStationHandler extends BaseThingHandler {
                 break;
             case CH_OBSERVATION_TIME:
                 try {
-                    setObservationTime(weatherStation.getCurrentTime());
+                    setObservationTime(channelUID, weatherStation.getCurrentTime());
                 } catch (RemoteErrorResponseException e) {
                     // TODO(denisacostaq@gmail.com):
                     // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
@@ -115,7 +111,7 @@ public class AccuweatherStationHandler extends BaseThingHandler {
                 break;
             case CH_PRECIPITATION_TYPE:
                 try {
-                    setPrecipitationType(weatherStation.getPrecipitationType());
+                    setPrecipitationType(channelUID, weatherStation.getPrecipitationType());
                 } catch (RemoteErrorResponseException e) {
                     // TODO(denisacostaq@gmail.com):
                     // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
@@ -130,7 +126,6 @@ public class AccuweatherStationHandler extends BaseThingHandler {
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-        logger.warn("handleCommand channelUID {} command {}", channelUID, command);
         if (command instanceof RefreshType) {
             refreshChanel(channelUID);
         }
@@ -149,8 +144,10 @@ public class AccuweatherStationHandler extends BaseThingHandler {
                 if (weatherStation.verifyStationConfigParams(countryCode, adminCode, cityName)) {
                     updateStatus(ThingStatus.ONLINE);
                     poolingJob = new AccuweatherDataSource(scheduler, weatherStation).start((temp, date) -> {
-                        setTemperature(temp);
-                        setObservationTime(date);
+                        ChannelUID chTemp = new ChannelUID(this.getThing().getUID(), CHG_CURRENT, CH_TEMPERATURE);
+                        ChannelUID chDate = new ChannelUID(this.getThing().getUID(), CHG_CURRENT, CH_OBSERVATION_TIME);
+                        setTemperature(chTemp, temp);
+                        setObservationTime(chDate, date);
                     }, () -> {
                         this.cancelPoolingJob();
                     });
@@ -215,25 +212,25 @@ public class AccuweatherStationHandler extends BaseThingHandler {
         return true;
     }
 
-    private void setTemperature(@Nullable Float temp) {
+    private void setTemperature(ChannelUID channelUID, @Nullable Float temp) {
         // TODO(denisacostaq@gmail.com): change to be based on exceptions
         if (Objects.isNull(temp)) {
             updateStatus(ThingStatus.OFFLINE);
         } else {
             // TODO(denisacostaq@gmail.com): optimize querying the current status
             updateStatus(ThingStatus.ONLINE);
-            updateState(CH_TEMPERATURE, new DecimalType(temp));
+            updateState(channelUID.getId(), new DecimalType(temp));
         }
     }
 
-    private void setObservationTime(@Nullable Date date) {
+    private void setObservationTime(ChannelUID channelUID, @Nullable Date date) {
         // TODO(denisacostaq@gmail.com): change to be based on exceptions
         if (Objects.isNull(date)) {
             updateStatus(ThingStatus.OFFLINE);
         } else {
             DateTimeType dateTimeType = new DateTimeType(ZonedDateTime.ofInstant(date.toInstant(), ZoneOffset.UTC)
                     .withZoneSameInstant(ZoneId.systemDefault()));
-            updateState(CH_OBSERVATION_TIME, dateTimeType);
+            updateState(channelUID.getId(), dateTimeType);
         }
     }
 

@@ -33,6 +33,7 @@ public class AccuweatherBindingConstants {
     public static final ThingTypeUID UID_STATION = new ThingTypeUID(BINDING_ID, THING_TYPE_STATION);
 
     // List of all Channel ids
+    public static final String CHG_CURRENT = "current";
     public static final String CH_TEMPERATURE = "temperature";
     public static final String CH_OBSERVATION_TIME = "observation_time";
     public static final String CH_PRECIPITATION_TYPE = "precipitation_type";
