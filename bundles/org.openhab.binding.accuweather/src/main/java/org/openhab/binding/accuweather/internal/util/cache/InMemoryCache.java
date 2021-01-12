@@ -30,8 +30,16 @@ import org.openhab.binding.accuweather.internal.interfaces.Cache;
  */
 @NonNullByDefault
 public class InMemoryCache<T> implements Cache<T> {
-    Map<String, T> data = new HashMap<>();
-    ReadWriteLock lock = new ReentrantReadWriteLock();
+    private final Map<String, T> data;
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
+
+    public InMemoryCache() {
+        this.data = new HashMap<>();
+    }
+
+    public InMemoryCache(int initialCapacity) {
+        this.data = new HashMap<>(initialCapacity);
+    }
 
     @Override
     public T getValue(String key) {
