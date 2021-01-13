@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.openhab.binding.accuweather.internal.handler.AccuweatherBridgeHandler;
+import org.openhab.binding.accuweather.internal.interfaces.ObjectMapper;
 import org.openhab.binding.accuweather.internal.model.pojo.AdministrativeArea;
 import org.openhab.binding.accuweather.internal.model.pojo.CitySearchResult;
 import org.openhab.binding.accuweather.internal.model.pojo.CurrentConditions;
@@ -28,14 +29,15 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
 /**
- * The {@link AccuweatherBridgeHandler} is responsible for deserializing responses from accuweather.com
+ * The {@link AccuweatherBridgeHandler} is responsible for deserializing json responses from accuweather.com
  *
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
-public class ObjectMapper {
-    private final Logger logger = LoggerFactory.getLogger(ObjectMapper.class);
+public class ObjectMapperJson implements ObjectMapper {
+    private final Logger logger = LoggerFactory.getLogger(ObjectMapperJson.class);
     private final Gson gson = new Gson();
 
+    @Override
     public List<CitySearchResult> deserializeCitySearchResult(String json) {
         try {
             return Arrays.stream(gson.fromJson(json, CitySearchResult[].class)).collect(Collectors.toList());
@@ -48,6 +50,7 @@ public class ObjectMapper {
         return null;
     }
 
+    @Override
     public CitySearchResult deserializeSingleCitySearchResult(String json) {
         try {
             return gson.fromJson(json, CitySearchResult.class);
@@ -60,6 +63,7 @@ public class ObjectMapper {
         return null;
     }
 
+    @Override
     public List<AdministrativeArea> deserializeAdminAreasResult(String json) {
         try {
             return Arrays.stream(gson.fromJson(json, AdministrativeArea[].class)).collect(Collectors.toList());
@@ -71,6 +75,7 @@ public class ObjectMapper {
         return null;
     }
 
+    @Override
     public CurrentConditions deserializeCurrentConditions(String json) {
         try {
             CurrentConditions[] currentConditions = gson.fromJson(json, CurrentConditions[].class);
@@ -89,6 +94,7 @@ public class ObjectMapper {
         return null;
     }
 
+    @Override
     public String getCityKey(String json) {
         List<CitySearchResult> citySearchResults = deserializeCitySearchResult(json);
         if (citySearchResults.isEmpty()) {
@@ -97,6 +103,7 @@ public class ObjectMapper {
         return citySearchResults.get(0).key;
     }
 
+    @Override
     public Double getTemperature(String json) {
         CurrentConditions currentConditions = deserializeCurrentConditions(json);
         if (currentConditions == null || currentConditions.temperature == null
@@ -106,6 +113,7 @@ public class ObjectMapper {
         return currentConditions.temperature.metric.value;
     }
 
+    @Override
     public Boolean hasPrecipitation(String json) {
         CurrentConditions currentConditions = deserializeCurrentConditions(json);
         if (currentConditions == null) {

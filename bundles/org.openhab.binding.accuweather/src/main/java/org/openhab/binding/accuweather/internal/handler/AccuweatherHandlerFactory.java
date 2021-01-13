@@ -26,7 +26,8 @@ import org.openhab.binding.accuweather.internal.interfaces.GeoInfo;
 import org.openhab.binding.accuweather.internal.util.api.AccuweatherStation;
 import org.openhab.binding.accuweather.internal.util.api.client.AccuweatherHttpApiClient;
 import org.openhab.binding.accuweather.internal.util.api.client.HttpClient;
-import org.openhab.binding.accuweather.internal.util.api.client.ObjectMapper;
+import org.openhab.binding.accuweather.internal.interfaces.ObjectMapper;
+import org.openhab.binding.accuweather.internal.util.api.client.ObjectMapperJson;
 import org.openhab.binding.accuweather.internal.util.cache.InMemoryCache;
 import org.openhab.core.config.discovery.DiscoveryService;
 import org.openhab.core.i18n.LocaleProvider;
@@ -68,7 +69,7 @@ public class AccuweatherHandlerFactory extends BaseThingHandlerFactory {
     private final LocationProvider locationProvider;
     private final UnitProvider unitProvider;
     private final TimeZoneProvider timeZoneProvider;
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapperJson();
     private final Cache cache = new InMemoryCache();
     private final HttpClient httpClient;
     private final org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiClient httpApiClient;
