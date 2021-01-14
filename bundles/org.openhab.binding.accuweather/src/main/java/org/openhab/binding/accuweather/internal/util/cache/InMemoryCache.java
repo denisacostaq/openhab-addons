@@ -20,7 +20,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.openhab.binding.accuweather.internal.interfaces.Cache;
+import org.openhab.binding.accuweather.internal.interfaces.cache.Cache;
 
 /**
  * The {@link InMemoryCache} is a simple in memory implementation of the {@link Cache} based in

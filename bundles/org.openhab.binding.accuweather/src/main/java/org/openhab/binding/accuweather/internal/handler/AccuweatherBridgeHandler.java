@@ -96,7 +96,9 @@ public class AccuweatherBridgeHandler extends BaseBridgeHandler {
                 } else {
                     setThingOfflineWithCommError(genericErrMsg);
                 }
-            } catch (RemoteErrorResponseException e) {
+            } catch (Throwable exc) {
+                // FIXME(denisacostaq@gmail.com): no cast
+                RemoteErrorResponseException e = (RemoteErrorResponseException) exc;
                 if (Objects.equals(e.status(), RemoteErrorResponseException.StatusType.BAD_SERVER)) {
                     logger.debug("remote server error, rescheduling key validation in {} seconds",
                             KEY_VALIDATION_DELAY.toSeconds());

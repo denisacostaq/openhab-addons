@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.junit.jupiter.api.*;
-import org.openhab.binding.accuweather.internal.interfaces.Cache;
+import org.openhab.binding.accuweather.internal.interfaces.cache.Cache;
 import org.openhab.binding.accuweather.internal.util.cache.InMemoryCache;
 
 /**

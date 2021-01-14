@@ -11,7 +11,7 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-package org.openhab.binding.accuweather.internal.interfaces;
+package org.openhab.binding.accuweather.internal.interfaces.cache;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 

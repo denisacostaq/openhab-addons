@@ -14,8 +14,8 @@
 package org.openhab.binding.accuweather.internal.util.api.client;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.accuweather.internal.exceptions.HttpErrorResponseException;
-import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
 
 /**
  * The {@link HttpClientRawInterface} is responsible for making http requests to accuweather.com.
@@ -23,19 +23,16 @@ import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseEx
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
 @NonNullByDefault
-public interface HttpClientRawInterface {
-    String getAdminAreas(String countryDomainName, String apiKey)
-            throws HttpErrorResponseException, RemoteErrorResponseException;
+public interface HttpClientRawInterface<V, E extends Throwable> {
+    V getAdminAreas(String countryDomainName, String apiKey) throws HttpErrorResponseException, E;
 
-    String citySearch(String countryDomainName, String adminCodeId, String cityNameQuery, String apiKey)
-            throws HttpErrorResponseException, RemoteErrorResponseException;
+    V citySearch(String countryDomainName, String adminCodeId, String cityNameQuery, String apiKey)
+            throws HttpErrorResponseException, E;
 
-    String neighborsCities(String cityKey, String apiKey)
-            throws HttpErrorResponseException, RemoteErrorResponseException;
+    V neighborsCities(String cityKey, String apiKey) throws HttpErrorResponseException, E;
 
-    String getCurrentConditions(String cityKey, String apiKey)
-            throws HttpErrorResponseException, RemoteErrorResponseException;
+    V getCurrentConditions(String cityKey, String apiKey) throws HttpErrorResponseException, E;
 
-    String geoPositionSearch(Float latitude, Float longitude, String apiKey)
-            throws HttpErrorResponseException, RemoteErrorResponseException;
+    V geoPositionSearch(@Nullable Float latitude, @Nullable Float longitude, String apiKey)
+            throws HttpErrorResponseException, E;
 }

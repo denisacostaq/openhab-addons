@@ -56,7 +56,9 @@ public class AccuweatherDataSource {
         return this.scheduler.scheduleAtFixedRate(() -> {
             try {
                 callback.accept(weatherStation.getTemperature(), weatherStation.getCurrentTime());
-            } catch (RemoteErrorResponseException e) {
+            } catch (Throwable exc) {
+                // FIXME(denisacostaq@gmail.com): no cast
+                RemoteErrorResponseException e = (RemoteErrorResponseException) exc;
                 logger.warn("unable to get temperature, details: {}", e.getMessage());
                 switch (e.status()) {
                     case BAD_CREDENTIALS:

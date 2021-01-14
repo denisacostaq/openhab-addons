@@ -19,7 +19,6 @@ import java.util.Objects;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
 import org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiClient;
 import org.openhab.binding.accuweather.internal.interfaces.WeatherStation;
 import org.openhab.binding.accuweather.internal.model.pojo.AdministrativeArea;
@@ -34,24 +33,25 @@ import org.slf4j.LoggerFactory;
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
 @NonNullByDefault
-public class AccuweatherStation implements WeatherStation {
+public class AccuweatherStation<HttpRespT, CacheValT, E extends Throwable>
+        implements WeatherStation<HttpRespT, CacheValT, E> {
     Logger logger = LoggerFactory.getLogger(AccuweatherStation.class);
-    private AccuweatherHttpApiClient httpClient;
+    private AccuweatherHttpApiClient<HttpRespT, CacheValT, E> httpClient;
     private String cityKey = "";
     private String countryCode = "";
     private Integer adminCode = 0;
     private String cityName = "";
 
-    public AccuweatherStation(AccuweatherHttpApiClient httpClient) {
+    public AccuweatherStation(AccuweatherHttpApiClient<HttpRespT, CacheValT, E> httpClient) {
         this.httpClient = httpClient;
     }
 
     @Override
     @Nullable
-    public Float getTemperature() throws RemoteErrorResponseException {
+    public Float getTemperature() throws E {
         CurrentConditions currentConditions = currentConditions();
-        if (currentConditions == null || currentConditions.temperature == null
-                || currentConditions.temperature.metric == null) {
+        if (Objects.isNull(currentConditions) || currentConditions.temperature == null
+                || Objects.isNull(currentConditions.temperature.metric)) {
             return null;
         }
         return Double.valueOf(currentConditions.temperature.metric.value).floatValue();
@@ -59,7 +59,7 @@ public class AccuweatherStation implements WeatherStation {
 
     @Override
     @Nullable
-    public Date getCurrentTime() throws RemoteErrorResponseException {
+    public Date getCurrentTime() throws E {
         CurrentConditions currentConditions = currentConditions();
         return Objects.isNull(currentConditions) ? null : currentConditions.localObservationDateTime;
     }
@@ -72,14 +72,14 @@ public class AccuweatherStation implements WeatherStation {
 
     @Override
     @Nullable
-    public Boolean hasPrecipitation() throws RemoteErrorResponseException {
+    public Boolean hasPrecipitation() throws E {
         CitySearchResult city = new CitySearchResult(cityKey, cityName);
         CurrentConditions currentConditions = httpClient.currentConditions(city);
         return currentConditions.hasPrecipitation;
     }
 
     @Override
-    public @Nullable String getPrecipitationType() throws RemoteErrorResponseException {
+    public @Nullable String getPrecipitationType() throws E {
         if (hasPrecipitation()) {
             CitySearchResult city = new CitySearchResult(cityKey, cityName);
             CurrentConditions currentConditions = httpClient.currentConditions(city);
@@ -91,8 +91,7 @@ public class AccuweatherStation implements WeatherStation {
     }
 
     @Override
-    public boolean verifyStationConfigParams(String countryCode, Integer adminCode, String cityName)
-            throws RemoteErrorResponseException {
+    public boolean verifyStationConfigParams(String countryCode, Integer adminCode, String cityName) throws E {
         String oldCountryCode = this.countryCode;
         Integer oldAdminCode = this.adminCode;
         String oldCityName = this.cityName;
@@ -115,10 +114,12 @@ public class AccuweatherStation implements WeatherStation {
                         "getting more than one cities for country code {}, admin code {} and city name {} looks suspicious",
                         countryCode, adminCode, cityName);
             }
-        } catch (RemoteErrorResponseException e) {
+        } catch (Throwable exc) {
+            // FIXME(denisacostaq@gmail.com): no cast
+            E e = (E) exc;
             logger.warn("unable to validate {} config params {}", AccuweatherStation.class.getSimpleName(),
                     e.getMessage());
-            throw e;
+            throw exc;
         } finally {
             if (!Objects.isNull(currentConditions)) {
                 this.countryCode = oldCountryCode;
@@ -130,7 +131,8 @@ public class AccuweatherStation implements WeatherStation {
         return !Objects.isNull(currentConditions);
     }
 
-    private CurrentConditions currentConditions() throws RemoteErrorResponseException {
+    @Nullable // FIXME(denisacostaq@gmail.com): remove
+    private CurrentConditions currentConditions() throws E {
         return httpClient.currentConditions(new CitySearchResult(this.cityKey, cityName));
     }
 }

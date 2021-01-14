@@ -14,6 +14,8 @@
 package org.openhab.binding.accuweather.internal.util.api.client;
 
 import java.net.HttpURLConnection;
+import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
@@ -22,10 +24,15 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.api.ContentResponse;
+import org.eclipse.jetty.http.DateParser;
 import org.eclipse.jetty.http.HttpField;
 import org.openhab.binding.accuweather.internal.exceptions.HttpErrorResponseException;
 import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
+import org.openhab.binding.accuweather.internal.interfaces.cache.ExpiringValue;
+import org.openhab.binding.accuweather.internal.util.cache.ExpiringValueImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +41,8 @@ import org.slf4j.LoggerFactory;
  *
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
-public class HttpClient implements HttpClientRawInterface {
+@NonNullByDefault
+public class HttpClient<V extends ExpiringValue<String>, E extends Throwable> implements HttpClientRawInterface<V, E> {
     private final Logger logger = LoggerFactory.getLogger(HttpClient.class);
     private org.eclipse.jetty.client.HttpClient client;
 
@@ -55,6 +63,7 @@ public class HttpClient implements HttpClientRawInterface {
      * @param resp from the accuweather.com server
      * @return a mapping exception if any
      */
+    @Nullable
     private HttpErrorResponseException mapHttpResponseToException(ContentResponse resp) {
         if (!Objects.equals(Response.Status.Family.SUCCESSFUL,
                 Response.Status.fromStatusCode(resp.getStatus()).getFamily())) {
@@ -80,10 +89,15 @@ public class HttpClient implements HttpClientRawInterface {
         return null;
     }
 
-    private String makeGetHttpRequest(String url) throws HttpErrorResponseException, RemoteErrorResponseException {
+    private V makeHttpGetRequest(String url) throws HttpErrorResponseException, E {
+        logger.warn("makeHttpGetRequest {}", url);
         try {
-            // ContentResponse resp = client.GET(url + "f");
             ContentResponse resp = client.GET(url);
+            List<HttpField> expiresHeader = resp.getHeaders().stream()
+                    .filter(httpField -> "Expires".equals(httpField.getName())).collect(Collectors.toList());
+            Date expiresAt = !expiresHeader.isEmpty() ? new Date(DateParser.parseDate(expiresHeader.get(0).toString()))
+                    : null;
+            logger.warn("expiresAt {}", expiresAt.toString());
             HttpErrorResponseException ex = mapHttpResponseToException(resp);
             if (!Objects.isNull(ex)) {
                 // FIXME(denisacostaq@gmail.com): setThingOfflineWithCommError(e.getMessage(), "Invalid API or
@@ -91,7 +105,7 @@ public class HttpClient implements HttpClientRawInterface {
                 // // rescheduleValidateKeysJob();
                 throw ex;
             }
-            return resp.getContentAsString();
+            return (V) new ExpiringValueImpl<>(expiresAt, resp.getContentAsString());
         } catch (IllegalArgumentException e) {
             // TODO(denisacostaq@gmail.com): handle this
             logger.warn("} catch (IllegalArgumentException e) {");
@@ -105,7 +119,7 @@ public class HttpClient implements HttpClientRawInterface {
         } catch (ExecutionException e) {
             logger.debug("Http client: Got ExecutionException: {}", e.getMessage());
             if (e.getMessage().contains("java.net.ConnectException") && e.getMessage().contains("Connection refused")) {
-                throw new RemoteErrorResponseException(RemoteErrorResponseException.StatusType.BAD_SERVER,
+                throw (E) new RemoteErrorResponseException(RemoteErrorResponseException.StatusType.BAD_SERVER,
                         "Server inaccesible");
             }
         } catch (TimeoutException e) {
@@ -113,19 +127,18 @@ public class HttpClient implements HttpClientRawInterface {
             // TODO(denisacostaq@gmail.com): handle this
             logger.warn("} catch (TimeoutException e) {}", e.getMessage());
         }
-        return "";
+        return (V) new ExpiringValueImpl<>(new Date(Instant.now().toEpochMilli()), "");
     }
 
     @Override
-    public String getAdminAreas(String countryDomainName, String apiKey)
-            throws HttpErrorResponseException, RemoteErrorResponseException {
+    public V getAdminAreas(String countryDomainName, String apiKey) throws HttpErrorResponseException, E {
         final String ADMIN_AREAS_URL = "http://dataservice.accuweather.com/locations/v1/adminareas/%COUNTRY_DOMAIN_NAME_CODE%?apikey=%API_KEY%";
         String url = ADMIN_AREAS_URL.replace("%COUNTRY_DOMAIN_NAME_CODE%", countryDomainName).replace("%API_KEY%",
                 apiKey);
         // FIXME(denisacostaq@gmail.com): Use the build url instead
         url = "http://localhost:8000/Admin_Area_List.json";
         logger.debug("Bridge: Querying Admin (results narrowed by countryCode) from Accuweather service");
-        return makeGetHttpRequest(url);
+        return makeHttpGetRequest(url);
     }
 
     /**
@@ -133,8 +146,8 @@ public class HttpClient implements HttpClientRawInterface {
      * @return the city key
      */
     @Override
-    public String citySearch(String countryDomainName, String adminCodeId, String cityNameQuery, String apiKey)
-            throws HttpErrorResponseException, RemoteErrorResponseException {
+    public V citySearch(String countryDomainName, String adminCodeId, String cityNameQuery, String apiKey)
+            throws HttpErrorResponseException, E {
         final String CITY_SEARCH_URL = "http://dataservice.accuweather.com/locations/v1/cities/%COUNTRY_DOMAIN_NAME_CODE%/%ADMIN_CODE%/search?apikey=%API_KEY%&q=%CITY_NAME_QUERY%";
         String url = CITY_SEARCH_URL.replace("%COUNTRY_DOMAIN_NAME_CODE%", countryDomainName)
                 .replace("%ADMIN_CODE%", adminCodeId).replace("%API_KEY%", apiKey)
@@ -144,35 +157,33 @@ public class HttpClient implements HttpClientRawInterface {
         url = "http://localhost:8000/City_Search_results_narrowed_by_countryCode_and_adminCode_.json";
         logger.debug(
                 "Bridge: Querying City Search (results narrowed by countryCode and adminCode) from Accuweather service");
-        return makeGetHttpRequest(url);
+        return makeHttpGetRequest(url);
     }
 
     @Override
-    public String neighborsCities(String cityKey, String apiKey)
-            throws HttpErrorResponseException, RemoteErrorResponseException {
+    public V neighborsCities(String cityKey, String apiKey) throws HttpErrorResponseException, E {
         final String NEIGHBORS_CITIES_URL = "http://dataservice.accuweather.com/locations/v1/cities/neighbors/%CITY_KEY%?apikey=%API_KEY%";
         String url = NEIGHBORS_CITIES_URL.replace("%CITY_KEY%", cityKey).replace("%API_KEY%", apiKey);
         // FIXME(denisacostaq@gmail.com): logger.debug("Validating API key through getting cities API");
         // FIXME(denisacostaq@gmail.com): Use the build url instead
         url = "http://localhost:8000/City_NeighborsbylocationKey.json";
         logger.debug("Bridge: Querying Neighbors Cities (results narrowed by city) from Accuweather service");
-        return makeGetHttpRequest(url);
+        return makeHttpGetRequest(url);
     }
 
     @Override
-    public String getCurrentConditions(String cityKey, String apiKey)
-            throws HttpErrorResponseException, RemoteErrorResponseException {
+    public V getCurrentConditions(String cityKey, String apiKey) throws HttpErrorResponseException, E {
         final String CURRENT_CONDITIONS_URL = "http://dataservice.accuweather.com/currentconditions/v1/%CITY_KEY%?apikey=%API_KEY%";
         String url = CURRENT_CONDITIONS_URL.replace("%CITY_KEY%", cityKey).replace("%API_KEY%", apiKey);
         // FIXME(denisacostaq@gmail.com): Use the builded url instead
         url = "http://localhost:8000/Current_Conditions.json";
         logger.debug("Bridge: Getting current conditions");
-        return makeGetHttpRequest(url);
+        return makeHttpGetRequest(url);
     }
 
     @Override
-    public String geoPositionSearch(Float latitude, Float longitude, String apiKey)
-            throws HttpErrorResponseException, RemoteErrorResponseException {
+    public V geoPositionSearch(@Nullable Float latitude, @Nullable Float longitude, String apiKey)
+            throws HttpErrorResponseException, E {
         final String GEO_POSITION_SEARCH_URL = "http://dataservice.accuweather.com/locations/v1/cities/geoposition/search?apikey=%API_KEY%&q=%LATITUDE%%2C%LONGITUDE%";
         String url = GEO_POSITION_SEARCH_URL.replace("%API_KEY%", apiKey)
                 .replace("%LATITUDE%", String.valueOf(latitude)).replace("%LATITUDE%", String.valueOf(longitude));

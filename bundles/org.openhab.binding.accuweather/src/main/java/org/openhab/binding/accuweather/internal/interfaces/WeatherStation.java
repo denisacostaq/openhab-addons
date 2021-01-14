@@ -17,7 +17,6 @@ import java.util.Date;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
 
 /**
  * The {@link WeatherStation} is the specification to get weather condition values from a station
@@ -25,13 +24,13 @@ import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseEx
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
 @NonNullByDefault
-public interface WeatherStation {
+public interface WeatherStation<HttpRespT, CacheValT, E extends Throwable> {
     /**
      * @return the temperature in the station
      */
     // FIXME(denisacostaq@gmail.com): should include scale, like for example celcious, fahrenheit
     @Nullable
-    Float getTemperature() throws RemoteErrorResponseException;
+    Float getTemperature() throws E;
 
     /**
      * @return the humidity in the station
@@ -43,14 +42,13 @@ public interface WeatherStation {
      * @return the current time in the station
      */
     @Nullable
-    Date getCurrentTime() throws RemoteErrorResponseException;
+    Date getCurrentTime() throws E;
 
     @Nullable
-    Boolean hasPrecipitation() throws RemoteErrorResponseException;
+    Boolean hasPrecipitation() throws E;
 
     @Nullable
-    String getPrecipitationType() throws RemoteErrorResponseException;
+    String getPrecipitationType() throws E;
 
-    boolean verifyStationConfigParams(String countryCode, Integer adminCode, String cityName)
-            throws RemoteErrorResponseException;
+    boolean verifyStationConfigParams(String countryCode, Integer adminCode, String cityName) throws E;
 }

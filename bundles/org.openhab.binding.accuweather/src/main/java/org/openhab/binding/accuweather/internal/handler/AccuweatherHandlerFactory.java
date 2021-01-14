@@ -21,14 +21,17 @@ import java.util.stream.Stream;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.accuweather.internal.discovery.AccuweatherDiscoveryService;
-import org.openhab.binding.accuweather.internal.interfaces.Cache;
+import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
 import org.openhab.binding.accuweather.internal.interfaces.GeoInfo;
+import org.openhab.binding.accuweather.internal.interfaces.ObjectMapper;
 import org.openhab.binding.accuweather.internal.util.api.AccuweatherStation;
 import org.openhab.binding.accuweather.internal.util.api.client.AccuweatherHttpApiClient;
 import org.openhab.binding.accuweather.internal.util.api.client.HttpClient;
-import org.openhab.binding.accuweather.internal.interfaces.ObjectMapper;
+import org.openhab.binding.accuweather.internal.util.api.client.HttpClientRawInterface;
 import org.openhab.binding.accuweather.internal.util.api.client.ObjectMapperJson;
-import org.openhab.binding.accuweather.internal.util.cache.InMemoryCache;
+import org.openhab.binding.accuweather.internal.util.cache.ExpiringCacheMapImpl;
+import org.openhab.binding.accuweather.internal.interfaces.cache.ExpiringCacheMapInterface;
+import org.openhab.binding.accuweather.internal.interfaces.cache.ExpiringValue;
 import org.openhab.core.config.discovery.DiscoveryService;
 import org.openhab.core.i18n.LocaleProvider;
 import org.openhab.core.i18n.LocationProvider;
@@ -70,9 +73,9 @@ public class AccuweatherHandlerFactory extends BaseThingHandlerFactory {
     private final UnitProvider unitProvider;
     private final TimeZoneProvider timeZoneProvider;
     private final ObjectMapper mapper = new ObjectMapperJson();
-    private final Cache cache = new InMemoryCache();
-    private final HttpClient httpClient;
-    private final org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiClient httpApiClient;
+    private final ExpiringCacheMapInterface<String, Object, RemoteErrorResponseException> cache = new ExpiringCacheMapImpl<>();
+    private final HttpClientRawInterface<ExpiringValue<String>, RemoteErrorResponseException> httpClient;
+    private final org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiClient<String, Object, RemoteErrorResponseException> httpApiClient;
     private final GeoInfo geoInfo;
 
     @Activate
@@ -88,7 +91,7 @@ public class AccuweatherHandlerFactory extends BaseThingHandlerFactory {
         client.setIdleTimeout(HttpClient.DEVICES_API_TIMEOUT);
         client.start();
         this.httpClient = new HttpClient(client);
-        this.httpApiClient = new AccuweatherHttpApiClient(locationProvider, httpClient, mapper, cache);
+        this.httpApiClient = new AccuweatherHttpApiClient<>(locationProvider, httpClient, mapper, cache);
         this.geoInfo = (GeoInfo) httpApiClient;
     }
 
@@ -105,8 +108,9 @@ public class AccuweatherHandlerFactory extends BaseThingHandlerFactory {
             registerDiscoveryService(handler.getThing().getUID());
             return handler;
         } else if (UID_STATION.equals(thingTypeUID)) {
-            AccuweatherStation accuweatherStation = new AccuweatherStation(httpApiClient);
-            return new AccuweatherStationHandler(thing, accuweatherStation);
+            AccuweatherStation<String, Object, RemoteErrorResponseException> accuweatherStation = new AccuweatherStation<>(
+                    httpApiClient);
+            return new AccuweatherStationHandler<>(thing, accuweatherStation);
         }
         return null;
     }

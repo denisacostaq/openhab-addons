@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
 import org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiClient;
 import org.openhab.binding.accuweather.internal.interfaces.GeoInfo;
 import org.openhab.binding.accuweather.internal.model.pojo.AdministrativeArea;
@@ -45,7 +44,7 @@ import org.slf4j.LoggerFactory;
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
 @NonNullByDefault
-public class AccuweatherDiscoveryService extends AbstractDiscoveryService {
+public class AccuweatherDiscoveryService<HttpRespT, CacheValT, E extends Throwable> extends AbstractDiscoveryService {
     private final Logger logger = LoggerFactory.getLogger(AccuweatherDiscoveryService.class);
 
     private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Set.of(UID_STATION);
@@ -54,18 +53,18 @@ public class AccuweatherDiscoveryService extends AbstractDiscoveryService {
     private static final int LOCATION_CHANGED_CHECK_INTERVAL_SECONDS = 60;
 
     private @Nullable ScheduledFuture<?> discoveryJob;
-    private final GeoInfo geoInfo;
+    private final GeoInfo<E> geoInfo;
     private @Nullable PointType previousLocation;
     private final LocationProvider locationProvider;
-    private final AccuweatherHttpApiClient httpApiClient;
+    private final AccuweatherHttpApiClient<HttpRespT, CacheValT, E> httpApiClient;
     private final ThingUID bridgeUID;
 
     /**
      * Creates a {@link AccuweatherDiscoveryService} with immediately enabled background discovery.
      */
     public AccuweatherDiscoveryService(final @Reference LocationProvider locationProvider,
-            final @Reference AccuweatherHttpApiClient httpApiClient, final @Reference GeoInfo geoInfo,
-            final @Reference ThingUID bridgeUID) {
+            final @Reference AccuweatherHttpApiClient<HttpRespT, CacheValT, E> httpApiClient,
+            final @Reference GeoInfo<E> geoInfo, final @Reference ThingUID bridgeUID) {
         super(SUPPORTED_THING_TYPES, DISCOVER_TIMEOUT_SECONDS, true);
         this.locationProvider = locationProvider;
         this.httpApiClient = httpApiClient;
@@ -77,13 +76,16 @@ public class AccuweatherDiscoveryService extends AbstractDiscoveryService {
     protected void startScan() {
         logger.trace("starting Accuweather scan");
         PointType location = locationProvider.getLocation();
+        // TODO(denisacostaq@gmail.com): Duplicate code
         if (location == null) {
             logger.warn("unable to discover stations for null location");
             return;
         }
         try {
             createResults(location);
-        } catch (RemoteErrorResponseException e) {
+        } catch (Throwable exc) {
+            // FIXME(denisacostaq@gmail.com): no cast
+            E e = (E) exc;
             logger.warn("unable to discover stations for location {}, detail: {}", location.toFullString(),
                     e.getMessage());
         }
@@ -104,7 +106,9 @@ public class AccuweatherDiscoveryService extends AbstractDiscoveryService {
                     }
                     try {
                         createResults(currentLocation);
-                    } catch (RemoteErrorResponseException e) {
+                    } catch (Throwable exc) {
+                        // FIXME(denisacostaq@gmail.com): no cast
+                        E e = (E) exc;
                         logger.warn("unable to discover stations for location {}, detail: {}",
                                 currentLocation.toFullString(), e.getMessage());
                     }
@@ -126,11 +130,11 @@ public class AccuweatherDiscoveryService extends AbstractDiscoveryService {
         super.deactivate();
     }
 
-    public void createResults(@Nullable PointType location) throws RemoteErrorResponseException {
+    public void createResults(@Nullable PointType location) throws E {
         createStationsFromLocation(location);
     }
 
-    private CitySearchResult getCityFromLocation(@Nullable PointType location) throws RemoteErrorResponseException {
+    private CitySearchResult getCityFromLocation(@Nullable PointType location) throws E {
         String cityName = geoInfo.getCityName(location);
         String countryCode = geoInfo.getCountryDomainName(location);
         String administrativeAreaName = geoInfo.getAdministrativeArea(location);
@@ -158,7 +162,7 @@ public class AccuweatherDiscoveryService extends AbstractDiscoveryService {
         return citySearchResults.get(0);
     }
 
-    private void createStationsFromLocation(@Nullable PointType location) throws RemoteErrorResponseException {
+    private void createStationsFromLocation(@Nullable PointType location) throws E {
         if (Objects.isNull(location)) {
             logger.info("can not create stations of null location");
             return;

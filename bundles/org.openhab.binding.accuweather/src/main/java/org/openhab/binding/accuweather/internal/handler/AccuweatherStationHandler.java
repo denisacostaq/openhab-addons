@@ -46,10 +46,10 @@ import org.slf4j.LoggerFactory;
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
 @NonNullByDefault
-public class AccuweatherStationHandler extends BaseThingHandler {
+public class AccuweatherStationHandler<HttpRespT, CacheValT, E extends Throwable> extends BaseThingHandler {
     private final Logger logger = LoggerFactory.getLogger(AccuweatherStationHandler.class);
     private @Nullable AccuweatherStationConfiguration config;
-    private @Nullable WeatherStation weatherStation;
+    private @Nullable WeatherStation<HttpRespT, CacheValT, E> weatherStation;
     private @Nullable ScheduledFuture<?> poolingJob;
     private String countryCode = "";
     private Integer adminCode = 0;
@@ -61,7 +61,7 @@ public class AccuweatherStationHandler extends BaseThingHandler {
      *
      * @param thing the thing that should be handled, not null
      */
-    public AccuweatherStationHandler(Thing thing, WeatherStation weatherStation) {
+    public AccuweatherStationHandler(Thing thing, WeatherStation<HttpRespT, CacheValT, E> weatherStation) {
         super(thing);
         this.weatherStation = weatherStation;
     }
@@ -94,7 +94,9 @@ public class AccuweatherStationHandler extends BaseThingHandler {
             case CH_TEMPERATURE:
                 try {
                     setTemperature(channelUID, weatherStation.getTemperature());
-                } catch (RemoteErrorResponseException e) {
+                } catch (Throwable exc) {
+                    // FIXME(denisacostaq@gmail.com): no cast
+                    RemoteErrorResponseException e = (RemoteErrorResponseException) exc;
                     // TODO(denisacostaq@gmail.com):
                     // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
                     logger.warn("unable to get temperature, details: {}", e.getMessage());
@@ -103,7 +105,9 @@ public class AccuweatherStationHandler extends BaseThingHandler {
             case CH_OBSERVATION_TIME:
                 try {
                     setObservationTime(channelUID, weatherStation.getCurrentTime());
-                } catch (RemoteErrorResponseException e) {
+                } catch (Throwable exc) {
+                    // FIXME(denisacostaq@gmail.com): no cast
+                    E e = (E) exc;
                     // TODO(denisacostaq@gmail.com):
                     // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
                     logger.warn("unable to get temperature, details: {}", e.getMessage());
@@ -112,7 +116,9 @@ public class AccuweatherStationHandler extends BaseThingHandler {
             case CH_PRECIPITATION_TYPE:
                 try {
                     setPrecipitationType(channelUID, weatherStation.getPrecipitationType());
-                } catch (RemoteErrorResponseException e) {
+                } catch (Throwable exc) {
+                    // FIXME(denisacostaq@gmail.com): no cast
+                    E e = (E) exc;
                     // TODO(denisacostaq@gmail.com):
                     // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
                     logger.warn("unable to get precipitation type, details: {}", e.getMessage());
@@ -154,7 +160,9 @@ public class AccuweatherStationHandler extends BaseThingHandler {
                 } else {
                     setThingOfflineWithCommError("unable to validate configured parameters");
                 }
-            } catch (RemoteErrorResponseException e) {
+            } catch (Throwable exc) {
+                // FIXME(denisacostaq@gmail.com): no cast, and/or use E
+                RemoteErrorResponseException e = (RemoteErrorResponseException) exc;
                 if (Objects.equals(e.status(), RemoteErrorResponseException.StatusType.BAD_SERVER)) {
                     logger.debug("remote server error, rescheduling station config parameters validation in {} seconds",
                             STATION_VALIDATION_DELAY.toSeconds());
@@ -231,6 +239,15 @@ public class AccuweatherStationHandler extends BaseThingHandler {
             DateTimeType dateTimeType = new DateTimeType(ZonedDateTime.ofInstant(date.toInstant(), ZoneOffset.UTC)
                     .withZoneSameInstant(ZoneId.systemDefault()));
             updateState(channelUID.getId(), dateTimeType);
+        }
+    }
+
+    private void setPrecipitationType(ChannelUID channelUID, @Nullable String precipitationType) {
+        // TODO(denisacostaq@gmail.com): change to be based on exceptions
+        if (Objects.isNull(precipitationType)) {
+            updateStatus(ThingStatus.OFFLINE);
+        } else {
+            updateState(channelUID.getId(), new StringType(precipitationType));
         }
     }
 

@@ -10,25 +10,27 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-
-package org.openhab.binding.accuweather.internal.interfaces;
+package org.openhab.binding.accuweather.internal.interfaces.cache;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.core.library.types.PointType;
 
 /**
- * The {@link GeoInfo} is responsible getting relevant location information based in coordinates.
+ * The {@link ExpiringCache} is TODO(denisacostaq@gmail.com): todo
  *
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
 @NonNullByDefault
-public interface GeoInfo<E extends Throwable> {
-    String getCityName(@Nullable PointType location) throws E;
+public interface ExpiringCacheMapInterface<K, V, E extends Throwable> {
+    void put(K key, ThrowingSupplier<@Nullable ExpiringValue<V>, E> action);
 
-    String getCountryName(@Nullable PointType location) throws E;
+    @Nullable
+    V putIfAbsentAndGet(K key, ThrowingSupplier<@Nullable ExpiringValue<V>, E> action) throws E;
 
-    String getCountryDomainName(@Nullable PointType location) throws E;
+    @Nullable
+    V get(K key) throws E;
 
-    String getAdministrativeArea(@Nullable PointType location) throws E;
+    void invalidate(K key);
+
+    void invalidateAll();
 }

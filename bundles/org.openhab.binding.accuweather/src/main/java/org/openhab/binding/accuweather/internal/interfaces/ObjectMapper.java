@@ -13,12 +13,12 @@
 
 package org.openhab.binding.accuweather.internal.interfaces;
 
+import java.util.List;
+
 import org.openhab.binding.accuweather.internal.handler.AccuweatherBridgeHandler;
 import org.openhab.binding.accuweather.internal.model.pojo.AdministrativeArea;
 import org.openhab.binding.accuweather.internal.model.pojo.CitySearchResult;
 import org.openhab.binding.accuweather.internal.model.pojo.CurrentConditions;
-
-import java.util.List;
 
 /**
  * The {@link AccuweatherBridgeHandler} is responsible for deserializing responses from accuweather.com
