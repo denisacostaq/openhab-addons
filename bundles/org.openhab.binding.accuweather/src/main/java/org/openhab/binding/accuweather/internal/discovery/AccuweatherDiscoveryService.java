@@ -76,8 +76,7 @@ public class AccuweatherDiscoveryService<HttpRespT, CacheValT, E extends Throwab
     protected void startScan() {
         logger.trace("starting Accuweather scan");
         PointType location = locationProvider.getLocation();
-        // TODO(denisacostaq@gmail.com): Duplicate code
-        if (location == null) {
+        if (Objects.isNull(location)) {
             logger.warn("unable to discover stations for null location");
             return;
         }
@@ -93,29 +92,18 @@ public class AccuweatherDiscoveryService<HttpRespT, CacheValT, E extends Throwab
 
     @Override
     protected void startBackgroundDiscovery() {
-        logger.trace("starting background scan from Accuweather");
+        logger.trace("starting Accuweather background scan");
         if (discoveryJob == null) {
             discoveryJob = scheduler.scheduleWithFixedDelay(() -> {
                 PointType currentLocation = locationProvider.getLocation();
                 if (!Objects.equals(currentLocation, previousLocation)) {
                     logger.debug("Location has been changed from {} to {}: Creating new discovery results",
                             previousLocation, currentLocation);
-                    if (currentLocation == null) {
-                        logger.warn("unable to discover stations for null location");
-                        return;
-                    }
-                    try {
-                        createResults(currentLocation);
-                    } catch (Throwable exc) {
-                        // FIXME(denisacostaq@gmail.com): no cast
-                        E e = (E) exc;
-                        logger.warn("unable to discover stations for location {}, detail: {}",
-                                currentLocation.toFullString(), e.getMessage());
-                    }
+                    this.startScan();
                     previousLocation = currentLocation;
                 }
             }, 0, LOCATION_CHANGED_CHECK_INTERVAL_SECONDS, TimeUnit.SECONDS);
-            logger.debug("Scheduled FMI Weather location-changed discovery job every {} seconds",
+            logger.debug("Scheduled Accuweather location-changed discovery job every {} seconds",
                     LOCATION_CHANGED_CHECK_INTERVAL_SECONDS);
         }
     }
