@@ -95,9 +95,8 @@ public class HttpClient<V extends ExpiringValue<String>, E extends Throwable> im
             ContentResponse resp = client.GET(url);
             List<HttpField> expiresHeader = resp.getHeaders().stream()
                     .filter(httpField -> "Expires".equals(httpField.getName())).collect(Collectors.toList());
-            Date expiresAt = !expiresHeader.isEmpty() ? new Date(DateParser.parseDate(expiresHeader.get(0).toString()))
+            Date expiresAt = !expiresHeader.isEmpty() ? new Date(DateParser.parseDate(expiresHeader.get(0).getValue()))
                     : null;
-            logger.warn("expiresAt {}", expiresAt.toString());
             HttpErrorResponseException ex = mapHttpResponseToException(resp);
             if (!Objects.isNull(ex)) {
                 // FIXME(denisacostaq@gmail.com): setThingOfflineWithCommError(e.getMessage(), "Invalid API or
