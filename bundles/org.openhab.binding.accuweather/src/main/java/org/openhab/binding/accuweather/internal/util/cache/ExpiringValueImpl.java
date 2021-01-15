@@ -18,6 +18,7 @@ import java.util.Date;
 import java.util.Objects;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.accuweather.internal.interfaces.cache.ExpiringCache;
 import org.openhab.binding.accuweather.internal.interfaces.cache.ExpiringValue;
 import org.slf4j.Logger;
@@ -31,7 +32,7 @@ import org.slf4j.LoggerFactory;
 @NonNullByDefault
 public class ExpiringValueImpl<V> implements ExpiringValue<V> {
     private final Logger logger = LoggerFactory.getLogger(ExpiringValueImpl.class);
-    private final Date expiry;
+    private final @Nullable Date expiry;
     private final V value;
 
     /**
@@ -40,7 +41,7 @@ public class ExpiringValueImpl<V> implements ExpiringValue<V> {
      * @param value the value to be stored
      * @throws IllegalArgumentException For an expire value <=0.
      */
-    public ExpiringValueImpl(Date expiry, V value) {
+    public ExpiringValueImpl(@Nullable Date expiry, V value) {
         this.expiry = expiry;
         this.value = value;
         Date now = new Date(Instant.now().toEpochMilli());
@@ -51,7 +52,7 @@ public class ExpiringValueImpl<V> implements ExpiringValue<V> {
     }
 
     @Override
-    public Date expiresAt() {
+    public @Nullable Date expiresAt() {
         return expiry;
     }
 

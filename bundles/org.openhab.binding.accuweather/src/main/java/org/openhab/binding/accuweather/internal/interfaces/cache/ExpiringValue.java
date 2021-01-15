@@ -16,6 +16,7 @@ package org.openhab.binding.accuweather.internal.interfaces.cache;
 import java.util.Date;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 
 /**
  * The {@link ExpiringCache} is TODO(denisacostaq@gmail.com): todo
@@ -24,6 +25,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
  */
 @NonNullByDefault
 public interface ExpiringValue<V> {
+    @Nullable
     Date expiresAt();
 
     /**
