@@ -90,7 +90,7 @@ public class AccuweatherHandlerFactory extends BaseThingHandlerFactory {
         client.setConnectTimeout(HttpClient.DEVICES_API_TIMEOUT);
         client.setIdleTimeout(HttpClient.DEVICES_API_TIMEOUT);
         client.start();
-        this.httpClient = new HttpClient(client);
+        this.httpClient = new HttpClient(client, mapper);
         this.httpApiClient = new AccuweatherHttpApiClient<>(locationProvider, httpClient, mapper, cache);
         this.geoInfo = (GeoInfo) httpApiClient;
     }

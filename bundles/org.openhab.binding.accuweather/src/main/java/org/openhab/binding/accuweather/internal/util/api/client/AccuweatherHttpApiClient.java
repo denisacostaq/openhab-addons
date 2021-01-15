@@ -300,10 +300,16 @@ public class AccuweatherHttpApiClient<HttpRespT, CacheValT, CacheExcT extends Th
                             RemoteErrorResponseException.StatusType.BAD_CLIENT, "Unable to decode response");
                 }
                 return new ExpiringValueImpl<>(citySearch.expiresAt(), (CacheValT) citySearchModel);
-            } catch (HttpErrorResponseException e) {
-                logger.warn("Got HttpErrorResponseException, unable to get city by coordinates, details:\n{}",
-                        e.toString());
-                throw (CacheExcT) new RemoteErrorResponseException(e);
+            } catch (Throwable exc) {
+                if (exc instanceof RemoteErrorResponseException) {
+                    CacheExcT e = (CacheExcT) exc;
+                    logger.warn("Got HttpErrorResponseException, unable to get city by coordinates, details:\n{}",
+                            e.getMessage());
+                    throw e;
+                } else {
+                    logger.warn("Unexpected error, unable to get city by coordinates, details:\n{}", exc.getMessage());
+                    return new ExpiringValueImpl<>(null, (CacheValT) new CitySearchResult());
+                }
             }
         };
     }

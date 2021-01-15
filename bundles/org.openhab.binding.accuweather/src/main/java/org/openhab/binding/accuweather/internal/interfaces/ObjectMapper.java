@@ -19,6 +19,7 @@ import org.openhab.binding.accuweather.internal.handler.AccuweatherBridgeHandler
 import org.openhab.binding.accuweather.internal.model.pojo.AdministrativeArea;
 import org.openhab.binding.accuweather.internal.model.pojo.CitySearchResult;
 import org.openhab.binding.accuweather.internal.model.pojo.CurrentConditions;
+import org.openhab.binding.accuweather.internal.model.pojo.ErrorResponse;
 
 /**
  * The {@link AccuweatherBridgeHandler} is responsible for deserializing responses from accuweather.com
@@ -33,6 +34,10 @@ public interface ObjectMapper {
     List<AdministrativeArea> deserializeAdminAreasResult(String json);
 
     CurrentConditions deserializeCurrentConditions(String json);
+
+    ErrorResponse deserializeErrorResponse(String json);
+
+    boolean canDeserializeContentType(String ct);
 
     // TODO(denisacostaq@gmail.com): remove
     String getCityKey(String json);

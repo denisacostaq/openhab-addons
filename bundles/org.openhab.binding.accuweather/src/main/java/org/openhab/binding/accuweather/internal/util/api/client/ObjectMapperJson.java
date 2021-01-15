@@ -17,11 +17,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.openhab.binding.accuweather.internal.handler.AccuweatherBridgeHandler;
 import org.openhab.binding.accuweather.internal.interfaces.ObjectMapper;
 import org.openhab.binding.accuweather.internal.model.pojo.AdministrativeArea;
 import org.openhab.binding.accuweather.internal.model.pojo.CitySearchResult;
 import org.openhab.binding.accuweather.internal.model.pojo.CurrentConditions;
+import org.openhab.binding.accuweather.internal.model.pojo.ErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,6 +94,24 @@ public class ObjectMapperJson implements ObjectMapper {
             // rescheduleValidateKeysJob();
         }
         return null;
+    }
+
+    @Override
+    public ErrorResponse deserializeErrorResponse(String json) {
+        try {
+            return gson.fromJson(json, ErrorResponse.class);
+        } catch (JsonSyntaxException e) {
+            logger.debug("Got JsonSyntaxException: {}", e.getMessage());
+            // FIXME(denisacostaq@gmail.com): setThingOfflineWithCommError(e.getMessage(), "Error parsing json
+            // response");
+            // rescheduleValidateKeysJob();
+        }
+        return null;
+    }
+
+    @Override
+    public boolean canDeserializeContentType(String ct) {
+        return StringUtils.equals(ct, "application/json");
     }
 
     @Override

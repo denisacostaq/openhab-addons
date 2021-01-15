@@ -15,9 +15,7 @@ package org.openhab.binding.accuweather.internal.util.api.client;
 
 import java.net.HttpURLConnection;
 import java.time.Instant;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
@@ -31,7 +29,9 @@ import org.eclipse.jetty.http.DateParser;
 import org.eclipse.jetty.http.HttpField;
 import org.openhab.binding.accuweather.internal.exceptions.HttpErrorResponseException;
 import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
+import org.openhab.binding.accuweather.internal.interfaces.ObjectMapper;
 import org.openhab.binding.accuweather.internal.interfaces.cache.ExpiringValue;
+import org.openhab.binding.accuweather.internal.model.pojo.ErrorResponse;
 import org.openhab.binding.accuweather.internal.util.cache.ExpiringValueImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +44,8 @@ import org.slf4j.LoggerFactory;
 @NonNullByDefault
 public class HttpClient<V extends ExpiringValue<String>, E extends Throwable> implements HttpClientRawInterface<V, E> {
     private final Logger logger = LoggerFactory.getLogger(HttpClient.class);
-    private org.eclipse.jetty.client.HttpClient client;
+    private final org.eclipse.jetty.client.HttpClient client;
+    private final ObjectMapper objectMapper;
 
     // Timeout of the call to the Ambient Weather devices API
     // FIXME(denisacostaq@gmail.com): more semantic
@@ -53,8 +54,9 @@ public class HttpClient<V extends ExpiringValue<String>, E extends Throwable> im
     // Time to wait after failed key validation
     public static final long KEY_VALIDATION_DELAY = 60L;
 
-    public HttpClient(org.eclipse.jetty.client.HttpClient httpClient) {
+    public HttpClient(org.eclipse.jetty.client.HttpClient httpClient, ObjectMapper objectMapper) {
         this.client = httpClient;
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -73,6 +75,16 @@ public class HttpClient<V extends ExpiringValue<String>, E extends Throwable> im
                             "Request had bad syntax or the parameters supplied were invalid.");
                 case HttpURLConnection.HTTP_UNAUTHORIZED:
                     return new HttpErrorResponseException(resp.getStatus(), "Unauthorized. API authorization failed.");
+                case HttpURLConnection.HTTP_UNAVAILABLE:
+                    ErrorResponse errorResponse = objectMapper.deserializeErrorResponse(resp.getContentAsString());
+                    // TODO(): check the Date header
+                    // {
+                    // "Code": "ServiceUnavailable",
+                    // "Message": "The allowed number of requests has been exceeded.",
+                    // "Reference": "/currentconditions/v1/51097?apikey=key"
+                    // }
+                    return new HttpErrorResponseException(resp.getStatus(),
+                            String.format("ServiceUnavailable: %s.", errorResponse.message));
                 case HttpURLConnection.HTTP_FORBIDDEN:
                     return new HttpErrorResponseException(resp.getStatus(),
                             "Unauthorized. You do not have permission to access this endpoint.");
@@ -90,7 +102,6 @@ public class HttpClient<V extends ExpiringValue<String>, E extends Throwable> im
     }
 
     private V makeHttpGetRequest(String url) throws HttpErrorResponseException, E {
-        logger.warn("makeHttpGetRequest {}", url);
         try {
             ContentResponse resp = client.GET(url);
             List<HttpField> expiresHeader = resp.getHeaders().stream()
@@ -104,6 +115,11 @@ public class HttpClient<V extends ExpiringValue<String>, E extends Throwable> im
                 // // rescheduleValidateKeysJob();
                 throw ex;
             }
+            // FIXME(denisacostaq@gmail.com): duplicate code
+            List<HttpField> contentTypeHeader = resp.getHeaders().stream()
+                    .filter(httpField -> "Expires".equals(httpField.getName())).collect(Collectors.toList());
+            logger.trace("Object mapper can handle content {}", objectMapper.canDeserializeContentType(
+                    contentTypeHeader.isEmpty() ? "application/json" : contentTypeHeader.get(0).getValue()));
             return (V) new ExpiringValueImpl<>(expiresAt, resp.getContentAsString());
         } catch (IllegalArgumentException e) {
             // TODO(denisacostaq@gmail.com): handle this
@@ -151,7 +167,6 @@ public class HttpClient<V extends ExpiringValue<String>, E extends Throwable> im
         String url = CITY_SEARCH_URL.replace("%COUNTRY_DOMAIN_NAME_CODE%", countryDomainName)
                 .replace("%ADMIN_CODE%", adminCodeId).replace("%API_KEY%", apiKey)
                 .replace("%CITY_NAME_QUERY%", cityNameQuery);
-        // FIXME(denisacostaq@gmail.com): logger.debug("Validating API key through getting cities API");
         // FIXME(denisacostaq@gmail.com): Use the build url instead
         url = "http://localhost:8000/City_Search_results_narrowed_by_countryCode_and_adminCode_.json";
         logger.debug(
@@ -163,7 +178,6 @@ public class HttpClient<V extends ExpiringValue<String>, E extends Throwable> im
     public V neighborsCities(String cityKey, String apiKey) throws HttpErrorResponseException, E {
         final String NEIGHBORS_CITIES_URL = "http://dataservice.accuweather.com/locations/v1/cities/neighbors/%CITY_KEY%?apikey=%API_KEY%";
         String url = NEIGHBORS_CITIES_URL.replace("%CITY_KEY%", cityKey).replace("%API_KEY%", apiKey);
-        // FIXME(denisacostaq@gmail.com): logger.debug("Validating API key through getting cities API");
         // FIXME(denisacostaq@gmail.com): Use the build url instead
         url = "http://localhost:8000/City_NeighborsbylocationKey.json";
         logger.debug("Bridge: Querying Neighbors Cities (results narrowed by city) from Accuweather service");
