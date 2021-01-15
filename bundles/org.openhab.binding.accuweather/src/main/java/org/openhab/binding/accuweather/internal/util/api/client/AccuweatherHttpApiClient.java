@@ -257,7 +257,7 @@ public class AccuweatherHttpApiClient<HttpRespT, CacheValT, CacheExcT extends Th
             // FIXME(denisacostaq@gmail.com): no cast
             CacheExcT e = (CacheExcT) exc;
             logger.debug("Exception trying to get admin areas for country code {}: {}", countryCode, e.getMessage());
-            // FIXME(denisacostaq@gmail.com): Enable this throw (CacheExcT)e;
+            throw e;
         } finally {
             if (Objects.isNull(adminAreas) || adminAreas.isEmpty()) {
                 this.apiKey = oldApiKey;

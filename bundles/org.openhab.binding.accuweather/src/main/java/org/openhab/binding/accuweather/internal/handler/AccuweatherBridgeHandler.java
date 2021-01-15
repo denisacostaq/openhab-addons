@@ -103,19 +103,24 @@ public class AccuweatherBridgeHandler extends BaseBridgeHandler {
                     setThingOfflineWithCommError(genericErrMsg);
                 }
             } catch (Throwable exc) {
-                // FIXME(denisacostaq@gmail.com): no cast
-                RemoteErrorResponseException e = (RemoteErrorResponseException) exc;
-                if (Objects.equals(e.status(), RemoteErrorResponseException.StatusType.BAD_SERVER)) {
-                    logger.debug("remote server error, rescheduling key validation in {} seconds",
-                            KEY_VALIDATION_DELAY.toSeconds());
-                    setThingOfflineWithCommError(genericErrMsg);
-                    this.scheduleValidateApiKey(KEY_VALIDATION_DELAY);
-                } else if (Objects.equals(e.status(), RemoteErrorResponseException.StatusType.BAD_CREDENTIALS)) {
-                    logger.debug("Invalid API Key for accuweather.com");
-                    setThingOfflineWithCommError("The provided accuweather.com API key looks invalid, please check it");
+                // FIXME(denisacostaq@gmail.com): cast to template
+                if (exc instanceof RemoteErrorResponseException) {
+                    RemoteErrorResponseException e = (RemoteErrorResponseException) exc;
+                    if (Objects.equals(e.status(), RemoteErrorResponseException.StatusType.BAD_SERVER)) {
+                        logger.debug("remote server error, rescheduling key validation in {} seconds",
+                                KEY_VALIDATION_DELAY.toSeconds());
+                        setThingOfflineWithCommError(genericErrMsg);
+                        // this.scheduleValidateApiKey(KEY_VALIDATION_DELAY);
+                    } else if (Objects.equals(e.status(), RemoteErrorResponseException.StatusType.BAD_CREDENTIALS)) {
+                        logger.debug("Invalid API Key for accuweather.com");
+                        setThingOfflineWithCommError(
+                                "The provided accuweather.com API key looks invalid, please check it");
+                    } else {
+                        // FIXME(denisacostaq@gmail.com): consider max rate reached
+                        logger.debug("Invalid state, please contact the developer");
+                    }
                 } else {
-                    // FIXME(denisacostaq@gmail.com): consider max rate reached
-                    logger.debug("Invalid state, please contact the developer");
+                    logger.warn("unexpected error: {}", exc.getMessage());
                 }
             }
         }, delay.toMillis(), TimeUnit.MILLISECONDS);
