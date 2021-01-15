@@ -24,14 +24,14 @@ import org.openhab.binding.accuweather.internal.discovery.AccuweatherDiscoverySe
 import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
 import org.openhab.binding.accuweather.internal.interfaces.GeoInfo;
 import org.openhab.binding.accuweather.internal.interfaces.ObjectMapper;
+import org.openhab.binding.accuweather.internal.interfaces.cache.ExpiringCacheMapInterface;
+import org.openhab.binding.accuweather.internal.interfaces.cache.ExpiringValue;
 import org.openhab.binding.accuweather.internal.util.api.AccuweatherStation;
 import org.openhab.binding.accuweather.internal.util.api.client.AccuweatherHttpApiClient;
 import org.openhab.binding.accuweather.internal.util.api.client.HttpClient;
 import org.openhab.binding.accuweather.internal.util.api.client.HttpClientRawInterface;
 import org.openhab.binding.accuweather.internal.util.api.client.ObjectMapperJson;
 import org.openhab.binding.accuweather.internal.util.cache.ExpiringCacheMapImpl;
-import org.openhab.binding.accuweather.internal.interfaces.cache.ExpiringCacheMapInterface;
-import org.openhab.binding.accuweather.internal.interfaces.cache.ExpiringValue;
 import org.openhab.core.config.discovery.DiscoveryService;
 import org.openhab.core.i18n.LocaleProvider;
 import org.openhab.core.i18n.LocationProvider;
@@ -104,8 +104,11 @@ public class AccuweatherHandlerFactory extends BaseThingHandlerFactory {
     protected @Nullable ThingHandler createHandler(Thing thing) {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
         if (UID_BRIDGE.equals(thingTypeUID)) {
-            BaseBridgeHandler handler = new AccuweatherBridgeHandler((Bridge) thing, httpApiClient);
-            registerDiscoveryService(handler.getThing().getUID());
+            AccuweatherDiscoveryService discoveryService = new AccuweatherDiscoveryService(locationProvider, httpApiClient, geoInfo);
+            BaseBridgeHandler handler = new AccuweatherBridgeHandler((Bridge) thing, httpApiClient, discoveryService);
+            logger.trace("registering {}", DiscoveryService.class.getName());
+            discoveryServiceRegs.put(handler.getThing().getUID(), bundleContext
+                    .registerService(DiscoveryService.class.getName(), discoveryService, new Hashtable<>()));
             return handler;
         } else if (UID_STATION.equals(thingTypeUID)) {
             AccuweatherStation<String, Object, RemoteErrorResponseException> accuweatherStation = new AccuweatherStation<>(
@@ -120,15 +123,6 @@ public class AccuweatherHandlerFactory extends BaseThingHandlerFactory {
         if (thingHandler instanceof AccuweatherBridgeHandler) {
             unregisterDiscoveryService(thingHandler.getThing().getUID());
         }
-    }
-
-    private synchronized void registerDiscoveryService(ThingUID bridgeUID) {
-        logger.trace("registering {}", this.getClass().getName());
-        AccuweatherDiscoveryService discoveryService = new AccuweatherDiscoveryService(locationProvider, httpApiClient,
-                geoInfo, bridgeUID);
-        discoveryService.activate(null);
-        discoveryServiceRegs.put(bridgeUID,
-                bundleContext.registerService(DiscoveryService.class.getName(), discoveryService, new Hashtable<>()));
     }
 
     private synchronized void unregisterDiscoveryService(ThingUID bridgeUID) {

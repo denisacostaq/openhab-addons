@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.accuweather.internal.config.AccuweatherBridgeConfiguration;
+import org.openhab.binding.accuweather.internal.discovery.AccuweatherDiscoveryService;
 import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
 import org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiClient;
 import org.openhab.core.thing.*;
@@ -43,15 +44,18 @@ public class AccuweatherBridgeHandler extends BaseBridgeHandler {
 
     private final Logger logger = LoggerFactory.getLogger(AccuweatherBridgeHandler.class);
     private final AccuweatherHttpApiClient accuweatherHttpApiClient;
+    private final AccuweatherDiscoveryService discoveryService;
     private static final Duration KEY_VALIDATION_DELAY = Duration.ofMillis(3000);
 
     private @Nullable AccuweatherBridgeConfiguration config;
 
     private String apiKey = "";
 
-    public AccuweatherBridgeHandler(Bridge bridge, final @Reference AccuweatherHttpApiClient accuweatherHttpApiClient) {
+    public AccuweatherBridgeHandler(Bridge bridge, final @Reference AccuweatherHttpApiClient accuweatherHttpApiClient,
+            AccuweatherDiscoveryService discoveryService) {
         super(bridge);
         this.accuweatherHttpApiClient = accuweatherHttpApiClient;
+        this.discoveryService = discoveryService;
     }
 
     @Override
@@ -91,6 +95,10 @@ public class AccuweatherBridgeHandler extends BaseBridgeHandler {
             try {
                 if (accuweatherHttpApiClient.verifyHttpApiKey(apiKey)) {
                     updateStatus(ThingStatus.ONLINE);
+                    if (true) { // TODO(denisacostaq@gmail.com): Check if should be called multiple times
+                        discoveryService.setBridgeUID(this.getThing().getUID());
+                        discoveryService.activate(null);
+                    }
                 } else {
                     setThingOfflineWithCommError(genericErrMsg);
                 }

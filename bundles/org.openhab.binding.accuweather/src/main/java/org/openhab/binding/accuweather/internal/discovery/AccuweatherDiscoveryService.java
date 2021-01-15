@@ -57,18 +57,21 @@ public class AccuweatherDiscoveryService<HttpRespT, CacheValT, E extends Throwab
     private @Nullable PointType previousLocation;
     private final LocationProvider locationProvider;
     private final AccuweatherHttpApiClient<HttpRespT, CacheValT, E> httpApiClient;
-    private final ThingUID bridgeUID;
+    private ThingUID bridgeUID = new ThingUID("Contact the developer about this error".split(" "));
 
     /**
      * Creates a {@link AccuweatherDiscoveryService} with immediately enabled background discovery.
      */
     public AccuweatherDiscoveryService(final @Reference LocationProvider locationProvider,
             final @Reference AccuweatherHttpApiClient<HttpRespT, CacheValT, E> httpApiClient,
-            final @Reference GeoInfo<E> geoInfo, final @Reference ThingUID bridgeUID) {
+            final @Reference GeoInfo<E> geoInfo) {
         super(SUPPORTED_THING_TYPES, DISCOVER_TIMEOUT_SECONDS, true);
         this.locationProvider = locationProvider;
         this.httpApiClient = httpApiClient;
         this.geoInfo = geoInfo;
+    }
+
+    public void setBridgeUID(final @Reference ThingUID bridgeUID) {
         this.bridgeUID = bridgeUID;
     }
 
