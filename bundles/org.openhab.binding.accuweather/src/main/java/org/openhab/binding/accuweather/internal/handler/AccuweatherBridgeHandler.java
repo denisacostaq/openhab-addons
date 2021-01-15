@@ -62,13 +62,11 @@ public class AccuweatherBridgeHandler extends BaseBridgeHandler {
     public void initialize() {
         config = getConfigAs(AccuweatherBridgeConfiguration.class);
         updateStatus(ThingStatus.UNKNOWN);
-        scheduler.execute(() -> {
-            if (!hasRequiredFields()) {
-                setThingOfflineWithConfError("some required config fields are missing");
-                return;
-            }
-            scheduleValidateApiKey(Duration.ZERO);
-        });
+        if (!hasRequiredFields()) {
+            setThingOfflineWithConfError("some required config fields are missing");
+            return;
+        }
+        scheduleValidateApiKey(Duration.ZERO);
     }
 
     @Override
