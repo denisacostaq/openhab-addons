@@ -121,7 +121,7 @@ public class AccuweatherStation<HttpRespT, CacheValT, E extends Throwable>
                     e.getMessage());
             throw exc;
         } finally {
-            if (!Objects.isNull(currentConditions)) {
+            if (Objects.isNull(currentConditions)) {
                 this.countryCode = oldCountryCode;
                 this.adminCode = oldAdminCode;
                 this.cityName = oldCityName;
