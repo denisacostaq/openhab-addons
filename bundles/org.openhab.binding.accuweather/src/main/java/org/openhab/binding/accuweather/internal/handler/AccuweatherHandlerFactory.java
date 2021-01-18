@@ -73,12 +73,7 @@ public class AccuweatherHandlerFactory extends BaseThingHandlerFactory {
     private final UnitProvider unitProvider;
     private final TimeZoneProvider timeZoneProvider;
     private final ObjectMapper mapper = new ObjectMapperJson();
-    // FIXME(denisacostaq@gmail.com): cache should be owned by the AccuweatherBridgeHandler, and set it to the chield
-    // tings
-    private final ExpiringCacheMapInterface<String, Object, RemoteErrorResponseException> cache = new ExpiringCacheMapImpl<>();
     private final HttpClientRawInterface<ExpiringValue<String>, RemoteErrorResponseException> httpClient;
-    private final org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiClient<String, Object, RemoteErrorResponseException> httpApiClient;
-    private final GeoInfo geoInfo;
 
     @Activate
     public AccuweatherHandlerFactory(final @Reference LocaleProvider localeProvider,
@@ -93,8 +88,6 @@ public class AccuweatherHandlerFactory extends BaseThingHandlerFactory {
         client.setIdleTimeout(HttpClient.DEVICES_API_TIMEOUT);
         client.start();
         this.httpClient = new HttpClient(client, mapper);
-        this.httpApiClient = new AccuweatherHttpApiClient<>(locationProvider, httpClient, mapper, cache);
-        this.geoInfo = (GeoInfo) httpApiClient;
     }
 
     @Override
@@ -106,15 +99,20 @@ public class AccuweatherHandlerFactory extends BaseThingHandlerFactory {
     protected @Nullable ThingHandler createHandler(Thing thing) {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
         if (UID_BRIDGE.equals(thingTypeUID)) {
-            AccuweatherDiscoveryService discoveryService = new AccuweatherDiscoveryService(locationProvider, httpApiClient, geoInfo);
-            BaseBridgeHandler handler = new AccuweatherBridgeHandler((Bridge) thing, httpApiClient, discoveryService);
+            final ExpiringCacheMapInterface<String, Object, RemoteErrorResponseException> cache = new ExpiringCacheMapImpl<>();
+            final org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiClient<String, Object, RemoteErrorResponseException> httpApiClient = new AccuweatherHttpApiClient<>(
+                    locationProvider, httpClient, mapper, cache);
+            final GeoInfo geoInfo = (GeoInfo) httpApiClient;
+            AccuweatherDiscoveryService discoveryService = new AccuweatherDiscoveryService(locationProvider,
+                    httpApiClient, geoInfo);
+            BaseBridgeHandler handler = new AccuweatherBridgeHandler((Bridge) thing, httpApiClient, discoveryService,
+                    cache);
             logger.trace("registering {}", DiscoveryService.class.getName());
             discoveryServiceRegs.put(handler.getThing().getUID(), bundleContext
                     .registerService(DiscoveryService.class.getName(), discoveryService, new Hashtable<>()));
             return handler;
         } else if (UID_STATION.equals(thingTypeUID)) {
-            AccuweatherStation<String, Object, RemoteErrorResponseException> accuweatherStation = new AccuweatherStation<>(
-                    httpApiClient);
+            AccuweatherStation<String, Object, RemoteErrorResponseException> accuweatherStation = new AccuweatherStation<>();
             return new AccuweatherStationHandler<>(thing, accuweatherStation);
         }
         return null;

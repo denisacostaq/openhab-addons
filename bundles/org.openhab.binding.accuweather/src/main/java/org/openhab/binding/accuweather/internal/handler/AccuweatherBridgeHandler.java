@@ -25,6 +25,7 @@ import org.openhab.binding.accuweather.internal.config.AccuweatherBridgeConfigur
 import org.openhab.binding.accuweather.internal.discovery.AccuweatherDiscoveryService;
 import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
 import org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiClient;
+import org.openhab.binding.accuweather.internal.interfaces.cache.ExpiringCacheMapInterface;
 import org.openhab.core.thing.*;
 import org.openhab.core.thing.binding.BaseBridgeHandler;
 import org.openhab.core.thing.binding.ThingHandler;
@@ -45,6 +46,7 @@ public class AccuweatherBridgeHandler extends BaseBridgeHandler {
     private final Logger logger = LoggerFactory.getLogger(AccuweatherBridgeHandler.class);
     private final AccuweatherHttpApiClient accuweatherHttpApiClient;
     private final AccuweatherDiscoveryService discoveryService;
+    private final ExpiringCacheMapInterface<String, Object, RemoteErrorResponseException> cache;
     private static final Duration KEY_VALIDATION_DELAY = Duration.ofMillis(3000);
 
     private @Nullable AccuweatherBridgeConfiguration config;
@@ -52,10 +54,12 @@ public class AccuweatherBridgeHandler extends BaseBridgeHandler {
     private String apiKey = "";
 
     public AccuweatherBridgeHandler(Bridge bridge, final @Reference AccuweatherHttpApiClient accuweatherHttpApiClient,
-            AccuweatherDiscoveryService discoveryService) {
+            final @Reference AccuweatherDiscoveryService discoveryService,
+            final @Reference ExpiringCacheMapInterface<String, Object, RemoteErrorResponseException> cache) {
         super(bridge);
         this.accuweatherHttpApiClient = accuweatherHttpApiClient;
         this.discoveryService = discoveryService;
+        this.cache = cache;
     }
 
     @Override
@@ -157,5 +161,9 @@ public class AccuweatherBridgeHandler extends BaseBridgeHandler {
         }
         final String status = !Objects.isNull(statusDescription) ? statusDescription : "null";
         updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.OFFLINE.CONFIGURATION_ERROR, status);
+    }
+
+    public AccuweatherHttpApiClient getAccuweatherHttpApiClient() {
+        return accuweatherHttpApiClient;
     }
 }

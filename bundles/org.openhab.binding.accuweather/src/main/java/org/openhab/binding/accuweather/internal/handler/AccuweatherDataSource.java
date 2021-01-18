@@ -34,16 +34,17 @@ import org.slf4j.LoggerFactory;
  *
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
+@NonNullByDefault
 public class AccuweatherDataSource {
     public interface Command {
         void call();
     }
 
     private final Logger logger = LoggerFactory.getLogger(AccuweatherDataSource.class);
-    private static ScheduledExecutorService scheduler;
+    private final ScheduledExecutorService scheduler;
     private final WeatherStation weatherStation;
 
-    public AccuweatherDataSource(ScheduledExecutorService scheduledExecutorService,
+    public AccuweatherDataSource(final @Reference ScheduledExecutorService scheduledExecutorService,
             final @Reference WeatherStation weatherStation) {
         this.scheduler = scheduledExecutorService;
         this.weatherStation = weatherStation;

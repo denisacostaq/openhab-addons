@@ -29,6 +29,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.accuweather.internal.config.AccuweatherStationConfiguration;
 import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
 import org.openhab.binding.accuweather.internal.interfaces.WeatherStation;
+import org.openhab.binding.accuweather.internal.util.api.AccuweatherStation;
 import org.openhab.core.library.types.DateTimeType;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.StringType;
@@ -36,6 +37,7 @@ import org.openhab.core.thing.*;
 import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
+import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +51,7 @@ import org.slf4j.LoggerFactory;
 public class AccuweatherStationHandler<HttpRespT, CacheValT, E extends Throwable> extends BaseThingHandler {
     private final Logger logger = LoggerFactory.getLogger(AccuweatherStationHandler.class);
     private @Nullable AccuweatherStationConfiguration config;
-    private @Nullable WeatherStation<HttpRespT, CacheValT, E> weatherStation;
+    private final WeatherStation<HttpRespT, CacheValT, E> weatherStation;
     private @Nullable ScheduledFuture<?> poolingJob;
     private String countryCode = "";
     private Integer adminCode = 0;
@@ -61,7 +63,8 @@ public class AccuweatherStationHandler<HttpRespT, CacheValT, E extends Throwable
      *
      * @param thing the thing that should be handled, not null
      */
-    public AccuweatherStationHandler(Thing thing, WeatherStation<HttpRespT, CacheValT, E> weatherStation) {
+    public AccuweatherStationHandler(Thing thing,
+            final @Reference WeatherStation<HttpRespT, CacheValT, E> weatherStation) {
         super(thing);
         this.weatherStation = weatherStation;
     }
@@ -146,6 +149,9 @@ public class AccuweatherStationHandler<HttpRespT, CacheValT, E extends Throwable
             }
             final String genericErrMsg = "unable to validate station config params";
             try {
+                // FIXME(denisacostaq@gmail.com): Do not cast
+                ((AccuweatherStation<HttpRespT, CacheValT, E>) weatherStation).setHttpClient(
+                        ((AccuweatherBridgeHandler) (getBridge().getHandler())).getAccuweatherHttpApiClient());
                 if (weatherStation.verifyStationConfigParams(countryCode, adminCode, cityName)) {
                     updateStatus(ThingStatus.ONLINE);
                     poolingJob = new AccuweatherDataSource(scheduler, weatherStation).start((temp, date) -> {

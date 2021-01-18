@@ -24,6 +24,7 @@ import org.openhab.binding.accuweather.internal.interfaces.WeatherStation;
 import org.openhab.binding.accuweather.internal.model.pojo.AdministrativeArea;
 import org.openhab.binding.accuweather.internal.model.pojo.CitySearchResult;
 import org.openhab.binding.accuweather.internal.model.pojo.CurrentConditions;
+import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,13 +37,13 @@ import org.slf4j.LoggerFactory;
 public class AccuweatherStation<HttpRespT, CacheValT, E extends Throwable>
         implements WeatherStation<HttpRespT, CacheValT, E> {
     Logger logger = LoggerFactory.getLogger(AccuweatherStation.class);
-    private final AccuweatherHttpApiClient<HttpRespT, CacheValT, E> httpClient;
+    private @Nullable AccuweatherHttpApiClient<HttpRespT, CacheValT, E> httpClient;
     private String cityKey = "";
     private String countryCode = "";
     private Integer adminCode = 0;
     private String cityName = "";
 
-    public AccuweatherStation(AccuweatherHttpApiClient<HttpRespT, CacheValT, E> httpClient) {
+    public void setHttpClient(final @Reference AccuweatherHttpApiClient<HttpRespT, CacheValT, E> httpClient) {
         this.httpClient = httpClient;
     }
 
