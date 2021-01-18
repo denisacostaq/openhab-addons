@@ -33,4 +33,6 @@ public interface ExpiringCacheMapInterface<K, V, E extends Throwable> {
     void invalidate(K key);
 
     void invalidateAll();
+
+    void clear();
 }

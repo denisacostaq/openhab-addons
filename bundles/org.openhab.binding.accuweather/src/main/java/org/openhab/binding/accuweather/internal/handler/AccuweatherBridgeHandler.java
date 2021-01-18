@@ -143,6 +143,9 @@ public class AccuweatherBridgeHandler extends BaseBridgeHandler {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Missing API key");
             return false;
         }
+        if (!StringUtils.equals(apiKey, configApiKey)) {
+            cache.clear();
+        }
         apiKey = configApiKey;
         return true;
     }

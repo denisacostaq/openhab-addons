@@ -103,4 +103,12 @@ public class ExpiringCacheMapImpl<K, V, E extends Throwable> implements Expiring
     public synchronized void invalidateAll() {
         items.keySet().forEach(key -> this.invalidate(key));
     }
+
+    @Override
+    public synchronized void clear() {
+        this.invalidateAll();
+        items.keySet().stream().forEach(key -> {
+            this.items.remove(key);
+        });
+    }
 }
