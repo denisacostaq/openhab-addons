@@ -197,6 +197,13 @@ public class HttpClient<V extends ExpiringValue<String>, E extends Throwable> im
     @Override
     public V geoPositionSearch(@Nullable Float latitude, @Nullable Float longitude, String apiKey)
             throws HttpErrorResponseException, E {
+        // Util.ensureNotNull(new HashMap<>() {
+        // {
+        // put("latitude", latitude);
+        // put("longitude", longitude);
+        // put("apiKey", apiKey);
+        // }
+        // }, "geoPositionSearch");
         final String GEO_POSITION_SEARCH_URL = "http://dataservice.accuweather.com/locations/v1/cities/geoposition/search?apikey=%API_KEY%&q=%LATITUDE%%2C%LONGITUDE%";
         String url = GEO_POSITION_SEARCH_URL.replace("%API_KEY%", apiKey)
                 .replace("%LATITUDE%", String.valueOf(latitude)).replace("%LONGITUDE%", String.valueOf(longitude));
