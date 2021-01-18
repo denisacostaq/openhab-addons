@@ -52,6 +52,7 @@
 				<label>Authentication Mode</label>
 				<options>
 					<option value="BASIC">Basic Authentication</option>
+					<option value="BASIC_PREEMPTIVE">Preemptive Basic Authentication</option>
 					<option value="DIGEST">Digest Authentication</option>
 				</options>
 				<default>BASIC</default>
@@ -141,7 +142,7 @@
 	<channel-type id="number">
 		<item-type>Number</item-type>
 		<label>Number Channel</label>
-		<config-description-ref uri="channel-type:http:channel-config"/>
+		<config-description-ref uri="channel-type:http:channel-config-number"/>
 	</channel-type>
 
 	<channel-type id="player">
