@@ -70,17 +70,7 @@ public class AccuweatherStationHandler<HttpRespT, CacheValT, E extends Throwable
     public void initialize() {
         config = getConfigAs(AccuweatherStationConfiguration.class);
         updateStatus(ThingStatus.UNKNOWN);
-        scheduler.execute(() -> {
-            if (!ThingStatus.ONLINE.equals(getBridge().getStatus())) {
-                setThingOfflineWithCommError("bridge is offline");
-                return;
-            }
-            if (!hasRequiredFields()) {
-                setThingOfflineWithConfError("some required config fields are missing");
-                return;
-            }
-            this.scheduleValidateStationParams(Duration.ZERO);
-        });
+        this.scheduleValidateStationParams(Duration.ZERO);
     }
 
     @Override
@@ -145,6 +135,15 @@ public class AccuweatherStationHandler<HttpRespT, CacheValT, E extends Throwable
     private void scheduleValidateStationParams(Duration delay) {
         logger.trace("validating API Key in {} seconds", delay.toSeconds());
         scheduler.schedule(() -> {
+            if (!ThingStatus.ONLINE.equals(getBridge().getStatus())) {
+                setThingOfflineWithCommError("bridge is offline");
+                this.scheduleValidateStationParams(STATION_VALIDATION_DELAY);
+                return;
+            }
+            if (!hasRequiredFields()) {
+                setThingOfflineWithConfError("some required config fields are missing");
+                return;
+            }
             final String genericErrMsg = "unable to validate station config params";
             try {
                 if (weatherStation.verifyStationConfigParams(countryCode, adminCode, cityName)) {
