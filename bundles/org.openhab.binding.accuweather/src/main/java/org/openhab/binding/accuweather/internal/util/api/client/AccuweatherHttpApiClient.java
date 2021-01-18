@@ -311,12 +311,6 @@ public class AccuweatherHttpApiClient<HttpRespT, CacheValT, CacheExcT extends Th
     }
 
     @Override
-    public String getCountryName(@Nullable PointType location) throws CacheExcT {
-        // FIXME(denisacostaq@gmail.com): handle null
-        return citySearchByCoordinates(location).country.englishName;
-    }
-
-    @Override
     public String getCountryDomainName(@Nullable PointType location) throws CacheExcT {
         // FIXME(denisacostaq@gmail.com): handle null
         return citySearchByCoordinates(location).country.iD;

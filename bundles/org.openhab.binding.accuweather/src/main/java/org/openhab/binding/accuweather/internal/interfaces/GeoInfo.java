@@ -26,8 +26,6 @@ import org.openhab.core.library.types.PointType;
 public interface GeoInfo<E extends Throwable> {
     String getCityName(@Nullable PointType location) throws E;
 
-    String getCountryName(@Nullable PointType location) throws E;
-
     String getCountryDomainName(@Nullable PointType location) throws E;
 
     String getAdministrativeArea(@Nullable PointType location) throws E;
