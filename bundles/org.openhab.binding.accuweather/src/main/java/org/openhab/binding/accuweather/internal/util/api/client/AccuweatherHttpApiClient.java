@@ -97,13 +97,7 @@ public class AccuweatherHttpApiClient<HttpRespT, CacheValT, CacheExcT extends Th
     public List<AdministrativeArea> getAdminAreas(String countryDomainName) throws CacheExcT {
         String key = adminAreasCacheKey(countryDomainName);
         // FIXME(denisacostaq@gmail.com): consider expired here, priority of null vs rate vs cache
-        CacheValT adminAreas = cache.get(key);
-        if (Objects.isNull(adminAreas)) {
-            cache.put(key, getAdminAreasSupplier(countryDomainName));
-            adminAreas = cache.get(key);
-        } else {
-            logger.trace("using previous value from cache");
-        }
+        CacheValT adminAreas = cache.putIfAbsentAndGet(key, getAdminAreasSupplier(countryDomainName));
         List<AdministrativeArea> adminAreasModel = (List<AdministrativeArea>) adminAreas;
         logger.trace("getting {} admin areas for country code {}", adminAreasModel.size(), countryDomainName);
         return adminAreasModel;
@@ -141,13 +135,7 @@ public class AccuweatherHttpApiClient<HttpRespT, CacheValT, CacheExcT extends Th
             throws CacheExcT {
         String key = citySearchCacheKey(adminCode, cityQuery);
         // FIXME(denisacostaq@gmail.com): consider expired here, priority of null vs rate vs cache
-        CacheValT citySearch = cache.get(key);
-        if (Objects.isNull(citySearch)) {
-            cache.put(key, getCitySearchSupplier(adminCode, cityQuery));
-            citySearch = cache.get(key);
-        } else {
-            logger.trace("using previous value from cache");
-        }
+        CacheValT citySearch = cache.putIfAbsentAndGet(key, getCitySearchSupplier(adminCode, cityQuery));
         List<CitySearchResult> citySearchModel = (List<CitySearchResult>) citySearch;
         logger.trace("getting {} cities for country code {}, admin code {} and city name {}", citySearchModel.size(),
                 adminCode.countryID, adminCode.iD, cityQuery.englishName);
@@ -183,13 +171,7 @@ public class AccuweatherHttpApiClient<HttpRespT, CacheValT, CacheExcT extends Th
     public CurrentConditions currentConditions(CitySearchResult city) throws CacheExcT {
         String key = currentConditionsCacheKey(city);
         // FIXME(denisacostaq@gmail.com): consider expired here, priority of null vs rate vs cache
-        CacheValT currentConditions = cache.get(key);
-        if (Objects.isNull(currentConditions)) {
-            cache.put(key, getCurrentConditionsSupplier(city));
-            currentConditions = cache.get(key);
-        } else {
-            logger.trace("using previous value from cache");
-        }
+        CacheValT currentConditions = cache.putIfAbsentAndGet(key, getCurrentConditionsSupplier(city));
         CurrentConditions currentConditionsModel = (CurrentConditions) currentConditions;
         logger.trace("getting current conditions {} for city {}", currentConditions, city.englishName);
         return currentConditionsModel;
@@ -228,13 +210,7 @@ public class AccuweatherHttpApiClient<HttpRespT, CacheValT, CacheExcT extends Th
         }
         String key = neighborsCitiesCacheKey(city);
         // FIXME(denisacostaq@gmail.com): consider expired here, priority of null vs rate vs cache
-        CacheValT neighborsCities = cache.get(key);
-        if (Objects.isNull(neighborsCities)) {
-            cache.put(key, getNeighborsCitiesSupplier(city));
-            neighborsCities = cache.get(key);
-        } else {
-            logger.trace("using previous value from cache");
-        }
+        CacheValT neighborsCities = cache.putIfAbsentAndGet(key, getNeighborsCitiesSupplier(city));
         List<CitySearchResult> neighborsCitiesModel = new ArrayList<>();
         ((List<CitySearchResult>) neighborsCities).stream()
                 .forEach(citySearchResult -> neighborsCitiesModel.add(citySearchResult));
@@ -251,6 +227,7 @@ public class AccuweatherHttpApiClient<HttpRespT, CacheValT, CacheExcT extends Th
             countryCode = "BG";
         }
         List<AdministrativeArea> adminAreas = null;
+        logger.debug("Validating API key through getting administrative areas for {}", countryCode);
         try {
             adminAreas = getAdminAreas(countryCode);
         } catch (Throwable exc) {
@@ -319,13 +296,8 @@ public class AccuweatherHttpApiClient<HttpRespT, CacheValT, CacheExcT extends Th
         Float longitude = location.getLongitude().floatValue();
         String key = geoPositionSearchCacheKey(latitude, longitude);
         // FIXME(denisacostaq@gmail.com): consider expired here, priority of null vs rate vs cache
-        CacheValT citySearchResult = cache.get(key);
-        if (Objects.isNull(citySearchResult)) {
-            cache.put(key, getCitySearchByCoordinatesSupplier(latitude, longitude));
-            citySearchResult = cache.get(key);
-        } else {
-            logger.trace("using previous value from cache");
-        }
+        CacheValT citySearchResult = cache.putIfAbsentAndGet(key,
+                getCitySearchByCoordinatesSupplier(latitude, longitude));
         CitySearchResult citySearchResultModel = (CitySearchResult) citySearchResult;
         logger.trace("getting {} city for latitude {} and longitude {}", citySearchResultModel.englishName,
                 location.getLatitude().floatValue(), location.getLongitude().floatValue());

@@ -12,6 +12,7 @@
  */
 package org.openhab.binding.accuweather.internal.util.cache;
 
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -46,19 +47,6 @@ public class ExpiringCacheMapImpl<K, V, E extends Throwable> implements Expiring
     }
 
     /**
-     * If the specified key is not already associated with a value, associate it with the given {@link ExpiringCache}.
-     *
-     * @param key the key with which the specified value is to be associated
-     * @param item the item to be associated with the specified key
-     */
-    private void putIfAbsent(K key, ExpiringCache<@Nullable V, E> item) {
-        if (key == null) {
-            throw new IllegalArgumentException("Item cannot be added as key is null.");
-        }
-        items.putIfAbsent(key, item);
-    }
-
-    /**
      * If the specified key is not already associated, associate it with the given action.
      *
      * Note that this method has the overhead of actually calling/performing the action
@@ -69,7 +57,10 @@ public class ExpiringCacheMapImpl<K, V, E extends Throwable> implements Expiring
      */
     @Override
     public @Nullable V putIfAbsentAndGet(K key, ThrowingSupplier<@Nullable ExpiringValue<V>, E> action) throws E {
-        putIfAbsent(key, new ExpiringCacheImpl<@Nullable V, E>(action));
+        if (Objects.isNull(key)) {
+            throw new IllegalArgumentException("Item cannot be added as key is null.");
+        }
+        items.putIfAbsent(key, new ExpiringCacheImpl<@Nullable V, E>(action));
         return get(key);
     }
 
@@ -82,7 +73,7 @@ public class ExpiringCacheMapImpl<K, V, E extends Throwable> implements Expiring
     @Override
     public @Nullable V get(K key) throws E {
         final ExpiringCache<@Nullable V, E> item = items.get(key);
-        if (item == null) {
+        if (Objects.isNull(item)) {
             logger.debug("No item for key '{}' found", key);
             return null;
         } else {
