@@ -73,6 +73,8 @@ public class AccuweatherHandlerFactory extends BaseThingHandlerFactory {
     private final UnitProvider unitProvider;
     private final TimeZoneProvider timeZoneProvider;
     private final ObjectMapper mapper = new ObjectMapperJson();
+    // FIXME(denisacostaq@gmail.com): cache should be owned by the AccuweatherBridgeHandler, and set it to the chield
+    // tings
     private final ExpiringCacheMapInterface<String, Object, RemoteErrorResponseException> cache = new ExpiringCacheMapImpl<>();
     private final HttpClientRawInterface<ExpiringValue<String>, RemoteErrorResponseException> httpClient;
     private final org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiClient<String, Object, RemoteErrorResponseException> httpApiClient;

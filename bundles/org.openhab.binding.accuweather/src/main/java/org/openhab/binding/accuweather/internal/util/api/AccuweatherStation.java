@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 public class AccuweatherStation<HttpRespT, CacheValT, E extends Throwable>
         implements WeatherStation<HttpRespT, CacheValT, E> {
     Logger logger = LoggerFactory.getLogger(AccuweatherStation.class);
-    private AccuweatherHttpApiClient<HttpRespT, CacheValT, E> httpClient;
+    private final AccuweatherHttpApiClient<HttpRespT, CacheValT, E> httpClient;
     private String cityKey = "";
     private String countryCode = "";
     private Integer adminCode = 0;
@@ -73,16 +73,14 @@ public class AccuweatherStation<HttpRespT, CacheValT, E extends Throwable>
     @Override
     @Nullable
     public Boolean hasPrecipitation() throws E {
-        CitySearchResult city = new CitySearchResult(cityKey, cityName);
-        CurrentConditions currentConditions = httpClient.currentConditions(city);
+        CurrentConditions currentConditions = currentConditions();
         return currentConditions.hasPrecipitation;
     }
 
     @Override
     public @Nullable String getPrecipitationType() throws E {
         if (hasPrecipitation()) {
-            CitySearchResult city = new CitySearchResult(cityKey, cityName);
-            CurrentConditions currentConditions = httpClient.currentConditions(city);
+            CurrentConditions currentConditions = currentConditions();
             // TODO(denisacostaq@gmail.com): currentConditions.precipitationType != nul
             return currentConditions.precipitationType.toString();
         } else {

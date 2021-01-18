@@ -113,6 +113,7 @@ public class AccuweatherDiscoveryService<HttpRespT, CacheValT, E extends Throwab
 
     @Override
     public void activate(@Nullable Map<String, Object> configProperties) {
+        logger.trace("Starting discovery service {}...", this.getClass().getSimpleName());
         super.activate(configProperties);
     }
 
