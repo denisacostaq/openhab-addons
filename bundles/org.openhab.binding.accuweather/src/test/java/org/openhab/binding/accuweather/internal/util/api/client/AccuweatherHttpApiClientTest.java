@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,9 +33,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
 import org.openhab.binding.accuweather.internal.interfaces.GeoInfo;
-import org.openhab.binding.accuweather.internal.interfaces.ObjectMapper;
 import org.openhab.binding.accuweather.internal.interfaces.cache.ExpiringCacheMapInterface;
-import org.openhab.binding.accuweather.internal.interfaces.cache.ExpiringValue;
 import org.openhab.binding.accuweather.internal.model.pojo.*;
 import org.openhab.core.i18n.LocationProvider;
 import org.openhab.core.library.types.DecimalType;
@@ -45,25 +44,24 @@ import org.openhab.core.library.types.PointType;
  *
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
+@NonNullByDefault
 class AccuweatherHttpApiClientTest {
     private @Mock LocationProvider locationProvider;
-    private @Mock HttpClientRawInterface<ExpiringValue<String>, @NonNull RemoteErrorResponseException> httpClientRaw;
-    private @Mock ObjectMapper mapper;
-    private @Mock ExpiringCacheMapInterface<String, Object, @NonNull RemoteErrorResponseException> cache;
+    private @Mock AccuweatherHttpApiSupplierFactoryInterface<String, Object, RemoteErrorResponseException> supplierFactory;
+    private @Mock ExpiringCacheMapInterface<String, Object, RemoteErrorResponseException> cache;
 
     org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiClient<String, Object, @NonNull RemoteErrorResponseException> accuweatherHttpApiClient;
 
     private void initMocks() {
         locationProvider = Mockito.mock(LocationProvider.class);
-        httpClientRaw = Mockito.mock(HttpClientRawInterface.class);
-        mapper = Mockito.mock(ObjectMapper.class);
+        supplierFactory = Mockito.mock(AccuweatherHttpApiSupplierFactoryInterface.class);
         cache = Mockito.mock(ExpiringCacheMapInterface.class);
     }
 
     @BeforeEach
     void setUp() {
         initMocks();
-        accuweatherHttpApiClient = new AccuweatherHttpApiClient(locationProvider, httpClientRaw, mapper, cache);
+        accuweatherHttpApiClient = new AccuweatherHttpApiClient(locationProvider, cache, supplierFactory);
     }
 
     @AfterEach
@@ -276,7 +274,7 @@ class AccuweatherHttpApiClientTest {
     }
 
     @Test
-    void getAdministrativeArea() throws Throwable {
+    void getAdministrativeAreaName() throws Throwable {
         // Preconditions
         assertThat(accuweatherHttpApiClient, is(instanceOf(GeoInfo.class)));
 

@@ -43,7 +43,7 @@ public class ExpiringCacheMapImpl<K, V, E extends Throwable> implements Expiring
      */
     @Override
     public void put(K key, ThrowingSupplier<@Nullable ExpiringValue<V>, E> action) {
-        items.put(key, new ExpiringCacheImpl<V, E>(action));
+        items.put(key, new ExpiringCacheImpl<>(action));
     }
 
     /**
@@ -60,7 +60,7 @@ public class ExpiringCacheMapImpl<K, V, E extends Throwable> implements Expiring
         if (Objects.isNull(key)) {
             throw new IllegalArgumentException("Item cannot be added as key is null.");
         }
-        items.putIfAbsent(key, new ExpiringCacheImpl<@Nullable V, E>(action));
+        items.putIfAbsent(key, new ExpiringCacheImpl<>(action));
         return get(key);
     }
 

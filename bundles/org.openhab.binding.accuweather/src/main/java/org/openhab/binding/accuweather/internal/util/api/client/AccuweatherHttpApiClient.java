@@ -21,17 +21,11 @@ import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
-import org.openhab.binding.accuweather.internal.exceptions.HttpErrorResponseException;
-import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
 import org.openhab.binding.accuweather.internal.interfaces.GeoInfo;
-import org.openhab.binding.accuweather.internal.interfaces.ObjectMapper;
 import org.openhab.binding.accuweather.internal.interfaces.cache.ExpiringCacheMapInterface;
-import org.openhab.binding.accuweather.internal.interfaces.cache.ExpiringValue;
-import org.openhab.binding.accuweather.internal.interfaces.cache.ThrowingSupplier;
 import org.openhab.binding.accuweather.internal.model.pojo.AdministrativeArea;
 import org.openhab.binding.accuweather.internal.model.pojo.CitySearchResult;
 import org.openhab.binding.accuweather.internal.model.pojo.CurrentConditions;
-import org.openhab.binding.accuweather.internal.util.cache.*;
 import org.openhab.core.i18n.LocationProvider;
 import org.openhab.core.library.types.PointType;
 import org.osgi.service.component.annotations.Reference;
@@ -51,44 +45,18 @@ public class AccuweatherHttpApiClient<HttpRespT, CacheValT, CacheExcT extends Th
     private final Logger logger = LoggerFactory.getLogger(AccuweatherHttpApiClient.class);
 
     private final LocationProvider locationProvider;
-    private final HttpClientRawInterface<ExpiringValue<HttpRespT>, CacheExcT> httpClientRaw;
     private final ExpiringCacheMapInterface<String, CacheValT, CacheExcT> cache;
-    private final ObjectMapper mapper;
     private final GeoInfo<CacheExcT> geoInfo;
-    String apiKey = "";
+    private final AccuweatherHttpApiSupplierFactoryInterface<HttpRespT, CacheValT, CacheExcT> supplierFactory;
+    private String apiKey = "";
 
     public AccuweatherHttpApiClient(final @Reference LocationProvider locationProvider,
-            final @Reference HttpClientRawInterface<ExpiringValue<HttpRespT>, CacheExcT> httpClientRaw,
-            final @Reference ObjectMapper mapper,
-            final @Reference ExpiringCacheMapInterface<String, CacheValT, CacheExcT> cache) {
+            final @Reference ExpiringCacheMapInterface<String, CacheValT, CacheExcT> cache,
+            final @Reference AccuweatherHttpApiSupplierFactoryInterface<HttpRespT, CacheValT, CacheExcT> supplierFactory) {
         this.locationProvider = locationProvider;
-        this.httpClientRaw = httpClientRaw;
-        this.mapper = mapper;
         this.cache = cache;
+        this.supplierFactory = supplierFactory;
         this.geoInfo = this;
-    }
-
-    private ThrowingSupplier<@Nullable ExpiringValue<CacheValT>, CacheExcT> getAdminAreasSupplier(
-            String countryDomainName) throws CacheExcT {
-        logger.trace("Null cache value, setting up admin areas supplier.");
-        return () -> {
-            try {
-                ExpiringValue<HttpRespT> adminAreas = httpClientRaw.getAdminAreas(countryDomainName, this.apiKey);
-                HttpRespT vj = adminAreas.value();
-                // FIXME(denisacostaq@gmail.com): vj should be deduced as string
-                final List<AdministrativeArea> adminAreasModel = mapper.deserializeAdminAreasResult((String) vj);
-                if (Objects.isNull(adminAreasModel)) {
-                    // FIXME(denisacostaq@gmail.com): no cast
-                    throw (CacheExcT) new RemoteErrorResponseException(
-                            RemoteErrorResponseException.StatusType.BAD_CLIENT, "Unable to decode response");
-                }
-                return new ExpiringValueImpl<>(adminAreas.expiresAt(), (CacheValT) adminAreasModel);
-            } catch (HttpErrorResponseException e) {
-                logger.warn("Got HttpErrorResponseException, unable to get admin areas, details:\n{}", e.toString());
-                // FIXME(denisacostaq@gmail.com): no cast
-                throw (CacheExcT) new RemoteErrorResponseException(e);
-            }
-        };
     }
 
     @Override
@@ -96,7 +64,8 @@ public class AccuweatherHttpApiClient<HttpRespT, CacheValT, CacheExcT extends Th
     public List<AdministrativeArea> getAdminAreas(String countryDomainName) throws CacheExcT {
         String key = adminAreasCacheKey(countryDomainName);
         // FIXME(denisacostaq@gmail.com): consider expired here, priority of null vs rate vs cache
-        CacheValT adminAreas = cache.putIfAbsentAndGet(key, getAdminAreasSupplier(countryDomainName));
+        CacheValT adminAreas = cache.putIfAbsentAndGet(key,
+                supplierFactory.getAdminAreasSupplier(countryDomainName, this.apiKey));
         List<AdministrativeArea> adminAreasModel = (List<AdministrativeArea>) adminAreas;
         if (logger.isTraceEnabled()) {
             if (Objects.isNull(adminAreasModel)) {
@@ -108,67 +77,18 @@ public class AccuweatherHttpApiClient<HttpRespT, CacheValT, CacheExcT extends Th
         return adminAreasModel;
     }
 
-    private ThrowingSupplier<@Nullable ExpiringValue<CacheValT>, CacheExcT> getCitySearchSupplier(
-            AdministrativeArea adminCode, CitySearchResult cityQuery) {
-        logger.trace("Null cache value, setting up city search supplier.");
-        return () -> {
-            try {
-                ExpiringValue<HttpRespT> citySearch = httpClientRaw.citySearch(adminCode.countryID, adminCode.iD,
-                        cityQuery.englishName, this.apiKey);
-                HttpRespT vj = citySearch.value();
-                // FIXME(denisacostaq@gmail.com): vj should be deduced as string
-                final List<CitySearchResult> citySearchModel = mapper.deserializeCitySearchResult((String) vj);
-                if (Objects.isNull(citySearchModel)) {
-                    // FIXME(denisacostaq@gmail.com): no cast
-                    throw (CacheExcT) new RemoteErrorResponseException(
-                            RemoteErrorResponseException.StatusType.BAD_CLIENT, "Unable to decode response");
-                }
-                return new ExpiringValueImpl<>(citySearch.expiresAt(), (CacheValT) citySearchModel);
-            } catch (HttpErrorResponseException e) {
-                logger.warn(
-                        "Got HttpErrorResponseException|RemoteErrorResponseException, unable to get admin areas, details:\n{}",
-                        e.toString());
-                // FIXME(denisacostaq@gmail.com): no cast
-                throw (CacheExcT) new RemoteErrorResponseException(e);
-            }
-        };
-    }
-
     @Override
     @Nullable // FIXME(denisacostaq@gmail.com): remove
     public List<CitySearchResult> citySearch(AdministrativeArea adminCode, CitySearchResult cityQuery)
             throws CacheExcT {
         String key = citySearchCacheKey(adminCode, cityQuery);
         // FIXME(denisacostaq@gmail.com): consider expired here, priority of null vs rate vs cache
-        CacheValT citySearch = cache.putIfAbsentAndGet(key, getCitySearchSupplier(adminCode, cityQuery));
+        CacheValT citySearch = cache.putIfAbsentAndGet(key,
+                supplierFactory.getCitySearchSupplier(adminCode, cityQuery, this.apiKey));
         List<CitySearchResult> citySearchModel = (List<CitySearchResult>) citySearch;
         logger.trace("getting {} cities for country code {}, admin code {} and city name {}", citySearchModel.size(),
                 adminCode.countryID, adminCode.iD, cityQuery.englishName);
         return citySearchModel;
-    }
-
-    private ThrowingSupplier<@Nullable ExpiringValue<CacheValT>, CacheExcT> getCurrentConditionsSupplier(
-            CitySearchResult city) {
-        logger.trace("Null cache value, setting up current conditions supplier.");
-        return () -> {
-            try {
-                ExpiringValue<HttpRespT> currentConditions = httpClientRaw.getCurrentConditions(city.key, this.apiKey);
-                HttpRespT vj = currentConditions.value();
-                // FIXME(denisacostaq@gmail.com): vj should be deduced as string
-                final CurrentConditions currentConditionsModel = mapper.deserializeCurrentConditions((String) vj);
-                if (Objects.isNull(currentConditionsModel)) {
-                    // FIXME(denisacostaq@gmail.com): no cast
-                    throw (CacheExcT) new RemoteErrorResponseException(
-                            RemoteErrorResponseException.StatusType.BAD_CLIENT, "Unable to decode response");
-                }
-                return new ExpiringValueImpl<>(currentConditions.expiresAt(), (CacheValT) currentConditionsModel);
-            } catch (HttpErrorResponseException e) {
-                logger.warn("Got HttpErrorResponseException, unable to get current conditions, details:\n{}",
-                        e.toString());
-                // FIXME(denisacostaq@gmail.com): no cast
-                throw (CacheExcT) new RemoteErrorResponseException(e);
-            }
-        };
     }
 
     @Override
@@ -176,34 +96,11 @@ public class AccuweatherHttpApiClient<HttpRespT, CacheValT, CacheExcT extends Th
     public CurrentConditions currentConditions(CitySearchResult city) throws CacheExcT {
         String key = currentConditionsCacheKey(city);
         // FIXME(denisacostaq@gmail.com): consider expired here, priority of null vs rate vs cache
-        CacheValT currentConditions = cache.putIfAbsentAndGet(key, getCurrentConditionsSupplier(city));
+        CacheValT currentConditions = cache.putIfAbsentAndGet(key,
+                supplierFactory.getCurrentConditionsSupplier(city, this.apiKey));
         CurrentConditions currentConditionsModel = (CurrentConditions) currentConditions;
         logger.trace("getting current conditions {} for city {}", currentConditions, city.englishName);
         return currentConditionsModel;
-    }
-
-    private ThrowingSupplier<@Nullable ExpiringValue<CacheValT>, CacheExcT> getNeighborsCitiesSupplier(
-            CitySearchResult city) {
-        logger.trace("Null cache value, setting up neighbor cities supplier.");
-        return () -> {
-            try {
-                ExpiringValue<HttpRespT> neighborsCities = httpClientRaw.neighborsCities(city.key, this.apiKey);
-                HttpRespT vj = neighborsCities.value();
-                // FIXME(denisacostaq@gmail.com): vj should be deduced as string
-                final List<CitySearchResult> currentConditionsModel = mapper.deserializeCitySearchResult((String) vj);
-                if (Objects.isNull(currentConditionsModel)) {
-                    // FIXME(denisacostaq@gmail.com): no cast
-                    throw (CacheExcT) new RemoteErrorResponseException(
-                            RemoteErrorResponseException.StatusType.BAD_CLIENT, "Unable to decode response");
-                }
-                return new ExpiringValueImpl<>(neighborsCities.expiresAt(), (CacheValT) currentConditionsModel);
-            } catch (HttpErrorResponseException e) {
-                logger.warn("Got HttpErrorResponseException, unable to get neighbor cities, details:\n{}",
-                        e.toString());
-                // FIXME(denisacostaq@gmail.com): no cast
-                throw (CacheExcT) new RemoteErrorResponseException(e);
-            }
-        };
     }
 
     @Override
@@ -215,7 +112,8 @@ public class AccuweatherHttpApiClient<HttpRespT, CacheValT, CacheExcT extends Th
         }
         String key = neighborsCitiesCacheKey(city);
         // FIXME(denisacostaq@gmail.com): consider expired here, priority of null vs rate vs cache
-        CacheValT neighborsCities = cache.putIfAbsentAndGet(key, getNeighborsCitiesSupplier(city));
+        CacheValT neighborsCities = cache.putIfAbsentAndGet(key,
+                supplierFactory.getNeighborsCitiesSupplier(city, this.apiKey));
         List<CitySearchResult> neighborsCitiesModel = new ArrayList<>();
         ((List<CitySearchResult>) neighborsCities).stream()
                 .forEach(citySearchResult -> neighborsCitiesModel.add(citySearchResult));
@@ -268,41 +166,13 @@ public class AccuweatherHttpApiClient<HttpRespT, CacheValT, CacheExcT extends Th
     /****************************** GeoInfo *************************/
     /**********************************************************************************/
 
-    private ThrowingSupplier<@Nullable ExpiringValue<CacheValT>, CacheExcT> getCitySearchByCoordinatesSupplier(
-            @Nullable Float latitude, @Nullable Float longitude) {
-        logger.trace("Null cache value, setting up city search by coordinates supplier.");
-        return () -> {
-            try {
-                ExpiringValue<HttpRespT> citySearch = httpClientRaw.geoPositionSearch(latitude, longitude, this.apiKey);
-                HttpRespT vj = citySearch.value();
-                // FIXME(denisacostaq@gmail.com): vj should be deduced as string
-                final CitySearchResult citySearchModel = mapper.deserializeSingleCitySearchResult((String) vj);
-                if (Objects.isNull(citySearchModel)) {
-                    throw (CacheExcT) new RemoteErrorResponseException(
-                            RemoteErrorResponseException.StatusType.BAD_CLIENT, "Unable to decode response");
-                }
-                return new ExpiringValueImpl<>(citySearch.expiresAt(), (CacheValT) citySearchModel);
-            } catch (Throwable exc) {
-                if (exc instanceof RemoteErrorResponseException) {
-                    CacheExcT e = (CacheExcT) exc;
-                    logger.warn("Got HttpErrorResponseException, unable to get city by coordinates, details:\n{}",
-                            e.getMessage());
-                    throw e;
-                } else {
-                    logger.warn("Unexpected error, unable to get city by coordinates, details:\n{}", exc.getMessage());
-                    return new ExpiringValueImpl<>(null, (CacheValT) new CitySearchResult());
-                }
-            }
-        };
-    }
-
     private CitySearchResult citySearchByCoordinates(@Nullable PointType location) throws CacheExcT {
         Float latitude = location.getLatitude().floatValue();
         Float longitude = location.getLongitude().floatValue();
         String key = geoPositionSearchCacheKey(latitude, longitude);
         // FIXME(denisacostaq@gmail.com): consider expired here, priority of null vs rate vs cache
         CacheValT citySearchResult = cache.putIfAbsentAndGet(key,
-                getCitySearchByCoordinatesSupplier(latitude, longitude));
+                supplierFactory.getCitySearchByCoordinatesSupplier(latitude, longitude, this.apiKey));
         CitySearchResult citySearchResultModel = (CitySearchResult) citySearchResult;
         logger.trace("getting {} city for latitude {} and longitude {}", citySearchResultModel.englishName,
                 location.getLatitude().floatValue(), location.getLongitude().floatValue());
