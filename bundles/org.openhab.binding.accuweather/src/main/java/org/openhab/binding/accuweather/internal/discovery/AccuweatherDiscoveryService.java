@@ -129,7 +129,7 @@ public class AccuweatherDiscoveryService<HttpRespT, CacheValT, E extends Throwab
     private CitySearchResult getCityFromLocation(@Nullable PointType location) throws E {
         String cityName = geoInfo.getCityName(location);
         String countryCode = geoInfo.getCountryDomainName(location);
-        String administrativeAreaName = geoInfo.getAdministrativeArea(location);
+        String administrativeAreaName = geoInfo.getAdministrativeAreaName(location);
         List<AdministrativeArea> adminAreas = httpApiClient.getAdminAreas(countryCode).stream()
                 .filter(aa -> StringUtils.equals(aa.englishName, administrativeAreaName)).collect(Collectors.toList());
         if (adminAreas.size() != 1) {

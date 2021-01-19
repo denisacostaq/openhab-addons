@@ -28,5 +28,5 @@ public interface GeoInfo<E extends Throwable> {
 
     String getCountryDomainName(@Nullable PointType location) throws E;
 
-    String getAdministrativeArea(@Nullable PointType location) throws E;
+    String getAdministrativeAreaName(@Nullable PointType location) throws E;
 }

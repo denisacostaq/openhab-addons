@@ -322,8 +322,7 @@ public class AccuweatherHttpApiClient<HttpRespT, CacheValT, CacheExcT extends Th
     }
 
     @Override
-    // TODO(denisacostaq@gmail.com): give a more semantic name
-    public String getAdministrativeArea(@Nullable PointType location) throws CacheExcT {
+    public String getAdministrativeAreaName(@Nullable PointType location) throws CacheExcT {
         // FIXME(denisacostaq@gmail.com): handle null
         return citySearchByCoordinates(location).administrativeArea.englishName;
     }

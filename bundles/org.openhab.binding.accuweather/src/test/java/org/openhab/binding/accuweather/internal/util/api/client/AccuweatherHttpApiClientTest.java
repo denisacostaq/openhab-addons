@@ -15,7 +15,6 @@ package org.openhab.binding.accuweather.internal.util.api.client;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
@@ -287,7 +286,7 @@ class AccuweatherHttpApiClientTest {
                 .thenReturn(new CitySearchResult(new AdministrativeArea("", adminAreaName, "")));
 
         // When
-        String result = ((GeoInfo) accuweatherHttpApiClient).getAdministrativeArea(new PointType(
+        String result = ((GeoInfo) accuweatherHttpApiClient).getAdministrativeAreaName(new PointType(
                 new DecimalType(BigDecimal.valueOf(1.454)), new DecimalType(BigDecimal.valueOf(1.34343))));
 
         // Then
