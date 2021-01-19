@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Objects;
 
 import org.apache.commons.lang.StringUtils;
-import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
@@ -329,7 +328,7 @@ public class AccuweatherHttpApiClient<HttpRespT, CacheValT, CacheExcT extends Th
         return citySearchByCoordinates(location).administrativeArea.englishName;
     }
 
-    private String geoPositionSearchCacheKey(@NotNull Float latitude, @NonNull Float longitude) {
+    private String geoPositionSearchCacheKey(Float latitude, Float longitude) {
         // FIXME(denisacostaq@gmail.com): handle null
         return String.format("%s/%f/%f", this.apiKey, latitude, longitude);
     }
