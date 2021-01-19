@@ -39,4 +39,10 @@ public class AdministrativeArea {
         this.iD = iD;
         this.countryID = countryID;
     }
+
+    public AdministrativeArea(String iD, String englishName, String countryID) {
+        this.iD = iD;
+        this.englishName = englishName;
+        this.countryID = countryID;
+    }
 }

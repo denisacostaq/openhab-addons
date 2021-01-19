@@ -25,4 +25,12 @@ public class Metric {
     public double value;
     public String unit;
     public int unitType;
+
+    public Metric() {
+    }
+
+    public Metric(double value, String unit) {
+        this.value = value;
+        this.unit = unit;
+    }
 }

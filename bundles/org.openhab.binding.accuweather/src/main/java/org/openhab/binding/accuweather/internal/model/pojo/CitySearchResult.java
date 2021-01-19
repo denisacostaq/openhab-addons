@@ -58,4 +58,12 @@ public class CitySearchResult {
         this.key = key;
         this.englishName = englishName;
     }
+
+    public CitySearchResult(Country country) {
+        this.country = country;
+    }
+
+    public CitySearchResult(AdministrativeArea administrativeArea) {
+        this.administrativeArea = administrativeArea;
+    }
 }

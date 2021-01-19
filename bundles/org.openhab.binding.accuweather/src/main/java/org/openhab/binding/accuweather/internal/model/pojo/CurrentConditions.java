@@ -38,4 +38,17 @@ public class CurrentConditions {
     public Temperature temperature;
     public String mobileLink;
     public String link;
+
+    public CurrentConditions() {
+    }
+
+    public CurrentConditions(Date localObservationDateTime, String weatherText, boolean hasPrecipitation,
+            Object precipitationType, boolean isDayTime, Temperature temperature) {
+        this.localObservationDateTime = localObservationDateTime;
+        this.weatherText = weatherText;
+        this.hasPrecipitation = hasPrecipitation;
+        this.precipitationType = precipitationType;
+        this.isDayTime = isDayTime;
+        this.temperature = temperature;
+    }
 }

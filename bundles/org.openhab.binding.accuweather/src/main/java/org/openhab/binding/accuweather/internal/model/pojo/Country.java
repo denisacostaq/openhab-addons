@@ -25,4 +25,11 @@ public class Country {
     public String iD;
     public String localizedName;
     public String englishName;
+
+    public Country() {
+    }
+
+    public Country(String iD) {
+        this.iD = iD;
+    }
 }

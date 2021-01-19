@@ -24,4 +24,11 @@ public class Temperature {
     @SerializedName(value = "Metric")
     public Metric metric;
     public Imperial imperial;
+
+    public Temperature() {
+    }
+
+    public Temperature(Metric metric) {
+        this.metric = metric;
+    }
 }

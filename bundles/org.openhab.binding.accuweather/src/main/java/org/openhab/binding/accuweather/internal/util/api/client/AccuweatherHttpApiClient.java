@@ -99,7 +99,13 @@ public class AccuweatherHttpApiClient<HttpRespT, CacheValT, CacheExcT extends Th
         // FIXME(denisacostaq@gmail.com): consider expired here, priority of null vs rate vs cache
         CacheValT adminAreas = cache.putIfAbsentAndGet(key, getAdminAreasSupplier(countryDomainName));
         List<AdministrativeArea> adminAreasModel = (List<AdministrativeArea>) adminAreas;
-        logger.trace("getting {} admin areas for country code {}", adminAreasModel.size(), countryDomainName);
+        if (logger.isTraceEnabled()) {
+            if (Objects.isNull(adminAreasModel)) {
+                logger.trace("getting null admin areas for country code {}", countryDomainName);
+            } else {
+                logger.trace("getting {} admin areas for country code {}", adminAreasModel.size(), countryDomainName);
+            }
+        }
         return adminAreasModel;
     }
 
@@ -317,6 +323,7 @@ public class AccuweatherHttpApiClient<HttpRespT, CacheValT, CacheExcT extends Th
     }
 
     @Override
+    // TODO(denisacostaq@gmail.com): give a more semantic name
     public String getAdministrativeArea(@Nullable PointType location) throws CacheExcT {
         // FIXME(denisacostaq@gmail.com): handle null
         return citySearchByCoordinates(location).administrativeArea.englishName;

@@ -14,28 +14,32 @@
 package org.openhab.binding.accuweather.internal.util.api.client;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.eclipse.jdt.annotation.NonNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.openhab.binding.accuweather.internal.exceptions.HttpErrorResponseException;
 import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
+import org.openhab.binding.accuweather.internal.interfaces.GeoInfo;
 import org.openhab.binding.accuweather.internal.interfaces.ObjectMapper;
 import org.openhab.binding.accuweather.internal.interfaces.cache.ExpiringCacheMapInterface;
 import org.openhab.binding.accuweather.internal.interfaces.cache.ExpiringValue;
-import org.openhab.binding.accuweather.internal.model.pojo.AdministrativeArea;
+import org.openhab.binding.accuweather.internal.model.pojo.*;
 import org.openhab.core.i18n.LocationProvider;
+import org.openhab.core.library.types.DecimalType;
+import org.openhab.core.library.types.PointType;
 
 /**
  * The {@link AccuweatherHttpApiClientTest} have the unit tests for {@link AccuweatherHttpApiClient}.
@@ -51,6 +55,7 @@ class AccuweatherHttpApiClientTest {
     org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiClient<String, Object, @NonNull RemoteErrorResponseException> accuweatherHttpApiClient;
 
     private void initMocks() {
+        locationProvider = Mockito.mock(LocationProvider.class);
         httpClientRaw = Mockito.mock(HttpClientRawInterface.class);
         mapper = Mockito.mock(ObjectMapper.class);
         cache = Mockito.mock(ExpiringCacheMapInterface.class);
@@ -67,54 +72,225 @@ class AccuweatherHttpApiClientTest {
     }
 
     @Test
-    void getAdminAreas() throws RemoteErrorResponseException, HttpErrorResponseException {
+    void getAdminAreas() throws RemoteErrorResponseException {
         // Giving
         final String adminAreaId = "22";
         final String countryId = "BG";
-        List<AdministrativeArea> adminAreasModel = Arrays.asList(new AdministrativeArea(adminAreaId, countryId));
-        when(cache.putIfAbsentAndGet(Mockito.any(), Mockito.any())).thenReturn(adminAreasModel);
+        when(cache.putIfAbsentAndGet(Mockito.any(), Mockito.any()))
+                .thenReturn(Arrays.asList(new AdministrativeArea(adminAreaId, countryId)));
 
         // When
         List<AdministrativeArea> result = accuweatherHttpApiClient.getAdminAreas("BG");
 
         // Then
-        assertThat(result.isEmpty(), is(false));
+        assertThat(result, is(notNullValue()));
+        assertThat(result.toArray(), is(not(emptyArray())));
         assertThat(result.get(0).iD, is(equalTo(adminAreaId)));
         assertThat(result.get(0).countryID, is(equalTo(countryId)));
     }
 
     @Test
-    void citySearch() {
-        throw new NotImplementedException("implement citySearch test");
+    void citySearch() throws RemoteErrorResponseException {
+        // Giving
+        final String cityKey = "51097";
+        final String cityName = "Sofia";
+        when(cache.putIfAbsentAndGet(Mockito.any(), Mockito.any()))
+                .thenReturn(Arrays.asList(new CitySearchResult(cityKey, cityName)));
+
+        // When
+        List<CitySearchResult> result = accuweatherHttpApiClient.citySearch(new AdministrativeArea(),
+                new CitySearchResult());
+
+        // Then
+        assertThat(result, is(notNullValue()));
+        assertThat(result.toArray(), is(not(emptyArray())));
+        assertThat(result.get(0).key, is(equalTo(cityKey)));
+        assertThat(result.get(0).englishName, is(equalTo(cityName)));
     }
 
     @Test
-    void currentConditions() {
-        throw new NotImplementedException("implement currentConditions test");
+    void currentConditions() throws RemoteErrorResponseException {
+        // Giving
+        final Date localObservationDateTime = Date.from(Instant.now());
+        final String weatherText = "Snowing";
+        final boolean hasPrecipitation = true;
+        final Object precipitationType = "Snow";
+        final boolean isDayTime = true;
+        final Temperature temperature = new Temperature(new Metric(-1, "C"));
+        when(cache.putIfAbsentAndGet(Mockito.any(), Mockito.any())).thenReturn(new CurrentConditions(
+                localObservationDateTime, weatherText, hasPrecipitation, precipitationType, isDayTime, temperature));
+
+        // When
+        CurrentConditions result = accuweatherHttpApiClient.currentConditions(new CitySearchResult());
+
+        // Then
+        assertThat(result.localObservationDateTime, is(equalTo(localObservationDateTime)));
+        assertThat(result.weatherText, is(equalTo(weatherText)));
+        assertThat(result.hasPrecipitation, is(equalTo(hasPrecipitation)));
+        assertThat(result.precipitationType, is(equalTo(precipitationType)));
+        assertThat(result.isDayTime, is(equalTo(isDayTime)));
+        assertThat(result.temperature, is(equalTo(temperature)));
     }
 
     @Test
-    void getNeighborsCities() {
-        throw new NotImplementedException("implement getNeighborsCities test");
+    void getNeighborsCities() throws RemoteErrorResponseException {
+        // Giving
+        final String city1Key = "51097";
+        final String city1Name = "Sofia";
+        final String city2Key = "46310";
+        final String city2Name = "German";
+        when(cache.putIfAbsentAndGet(Mockito.any(), Mockito.any())).thenReturn(
+                Arrays.asList(new CitySearchResult(city1Key, city1Name), new CitySearchResult(city2Key, city2Name)));
+
+        // When
+        List<CitySearchResult> result = accuweatherHttpApiClient
+                .getNeighborsCities(new CitySearchResult(city1Key, city1Name));
+
+        // Then
+        assertThat(result, is(notNullValue()));
+        assertThat(result.toArray(), arrayWithSize(2));
+        assertThat(result.get(0).key, is(equalTo(city1Key)));
+        assertThat(result.get(0).englishName, is(equalTo(city1Name)));
+        assertThat(result.get(1).key, is(equalTo(city2Key)));
+        assertThat(result.get(1).englishName, is(equalTo(city2Name)));
     }
 
     @Test
-    void verifyHttpApiKey() {
-        throw new NotImplementedException("implement verifyHttpApiKey test");
+    void getNeighborsCitiesEmptyCityKey() throws RemoteErrorResponseException {
+        // Giving
+        final String city1Key = "51097";
+        final String city1Name = "Sofia";
+        final String city2Key = "46310";
+        final String city2Name = "German";
+        when(cache.putIfAbsentAndGet(Mockito.any(), Mockito.any())).thenReturn(
+                Arrays.asList(new CitySearchResult(city1Key, city1Name), new CitySearchResult(city2Key, city2Name)));
+
+        // When
+        List<CitySearchResult> result = accuweatherHttpApiClient.getNeighborsCities(new CitySearchResult());
+
+        // Then
+        assertThat(result, is(not(nullValue())));
+        assertThat(result.toArray(), is(emptyArray()));
     }
 
     @Test
-    void getCityName() {
-        throw new NotImplementedException("implement getCityName test");
+    void verifyHttpApiKey() throws RemoteErrorResponseException {
+        // Giving
+        final String apiKey = "api key";
+        final String adminAreaId = "22";
+        final String countryId = "BG";
+        final BigDecimal latitude = BigDecimal.valueOf(1.454);
+        final BigDecimal longitude = BigDecimal.valueOf(1.34343);
+        when(locationProvider.getLocation())
+                .thenReturn(new PointType(new DecimalType(latitude), new DecimalType(longitude)));
+        when(cache.putIfAbsentAndGet(
+                Mockito.eq(String.format("%s/%f/%f", apiKey, latitude.floatValue(), longitude.floatValue())),
+                Mockito.any())).thenReturn(new CitySearchResult(new Country(countryId)));
+        when(cache.putIfAbsentAndGet(Mockito.eq(String.format("%s/%s", apiKey, "BG")), Mockito.any()))
+                .thenReturn(Arrays.asList(new AdministrativeArea(adminAreaId, countryId)));
+
+        // When
+        boolean result = accuweatherHttpApiClient.verifyHttpApiKey(apiKey);
+
+        // Then
+        assertThat(result, is(equalTo(true)));
     }
 
     @Test
-    void getCountryDomainName() {
-        throw new NotImplementedException("implement getCountryDomainName test");
+    void verifyHttpApiKeyNullAdminAreas() throws RemoteErrorResponseException {
+        // Giving
+        final String apiKey = "api key";
+        final String countryId = "BG";
+        final BigDecimal latitude = BigDecimal.valueOf(1.454);
+        final BigDecimal longitude = BigDecimal.valueOf(1.34343);
+        when(locationProvider.getLocation())
+                .thenReturn(new PointType(new DecimalType(latitude), new DecimalType(longitude)));
+        when(cache.putIfAbsentAndGet(
+                Mockito.eq(String.format("%s/%f/%f", apiKey, latitude.floatValue(), longitude.floatValue())),
+                Mockito.any())).thenReturn(new CitySearchResult(new Country(countryId)));
+        when(cache.putIfAbsentAndGet(Mockito.eq(String.format("%s/%s", apiKey, countryId)), Mockito.any()))
+                .thenReturn(null);
+
+        // When
+        boolean result = accuweatherHttpApiClient.verifyHttpApiKey(apiKey);
+
+        // Then
+        assertThat(result, is(equalTo(false)));
     }
 
     @Test
-    void getAdministrativeArea() {
-        throw new NotImplementedException("implement getAdministrativeArea test");
+    void verifyHttpApiKeyEmptyAdminAreas() throws RemoteErrorResponseException {
+        // Giving
+        final String apiKey = "api key";
+        final String countryId = "BG";
+        final BigDecimal latitude = BigDecimal.valueOf(1.454);
+        final BigDecimal longitude = BigDecimal.valueOf(1.34343);
+        when(locationProvider.getLocation())
+                .thenReturn(new PointType(new DecimalType(latitude), new DecimalType(longitude)));
+        when(cache.putIfAbsentAndGet(
+                Mockito.eq(String.format("%s/%f/%f", apiKey, latitude.floatValue(), longitude.floatValue())),
+                Mockito.any())).thenReturn(new CitySearchResult(new Country(countryId)));
+        when(cache.putIfAbsentAndGet(Mockito.eq(String.format("%s/%s", apiKey, countryId)), Mockito.any()))
+                .thenReturn(new ArrayList<>());
+
+        // When
+        boolean result = accuweatherHttpApiClient.verifyHttpApiKey(apiKey);
+
+        // Then
+        assertThat(result, is(equalTo(false)));
+    }
+
+    @Test
+    void getCityName() throws Throwable {
+        // Preconditions
+        assertThat(accuweatherHttpApiClient, is(instanceOf(GeoInfo.class)));
+
+        // Giving
+        final String cityKey = "51097";
+        final String cityName = "Sofia";
+        when(cache.putIfAbsentAndGet(Mockito.any(), Mockito.any())).thenReturn(new CitySearchResult(cityKey, cityName));
+
+        // When
+        String result = ((GeoInfo) accuweatherHttpApiClient).getCityName(new PointType(
+                new DecimalType(BigDecimal.valueOf(1.454)), new DecimalType(BigDecimal.valueOf(1.34343))));
+
+        // Then
+        assertThat(result, is(equalTo(cityName)));
+    }
+
+    @Test
+    void getCountryDomainName() throws Throwable {
+        // Preconditions
+        assertThat(accuweatherHttpApiClient, is(instanceOf(GeoInfo.class)));
+
+        // Giving
+        final String countryId = "BG";
+        when(cache.putIfAbsentAndGet(Mockito.any(), Mockito.any()))
+                .thenReturn(new CitySearchResult(new Country(countryId)));
+
+        // When
+        String result = ((GeoInfo) accuweatherHttpApiClient).getCountryDomainName(new PointType(
+                new DecimalType(BigDecimal.valueOf(1.454)), new DecimalType(BigDecimal.valueOf(1.34343))));
+
+        // Then
+        assertThat(result, is(equalTo(countryId)));
+    }
+
+    @Test
+    void getAdministrativeArea() throws Throwable {
+        // Preconditions
+        assertThat(accuweatherHttpApiClient, is(instanceOf(GeoInfo.class)));
+
+        // Giving
+        final String adminAreaName = "Sofia";
+        when(cache.putIfAbsentAndGet(Mockito.any(), Mockito.any()))
+                .thenReturn(new CitySearchResult(new AdministrativeArea("", adminAreaName, "")));
+
+        // When
+        String result = ((GeoInfo) accuweatherHttpApiClient).getAdministrativeArea(new PointType(
+                new DecimalType(BigDecimal.valueOf(1.454)), new DecimalType(BigDecimal.valueOf(1.34343))));
+
+        // Then
+        assertThat(result, is(equalTo(adminAreaName)));
     }
 }
