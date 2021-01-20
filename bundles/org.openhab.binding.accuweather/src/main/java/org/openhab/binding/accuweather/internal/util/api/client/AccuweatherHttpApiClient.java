@@ -21,6 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
+import org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiSupplierFactoryInterface;
 import org.openhab.binding.accuweather.internal.interfaces.GeoInfo;
 import org.openhab.binding.accuweather.internal.interfaces.cache.ExpiringCacheMapInterface;
 import org.openhab.binding.accuweather.internal.model.pojo.AdministrativeArea;

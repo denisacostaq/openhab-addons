@@ -16,10 +16,12 @@ package org.openhab.binding.accuweather.internal.util.api.client;
 import java.util.List;
 import java.util.Objects;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.accuweather.internal.exceptions.HttpErrorResponseException;
 import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
+import org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiSupplierFactoryInterface;
 import org.openhab.binding.accuweather.internal.interfaces.ObjectMapper;
 import org.openhab.binding.accuweather.internal.interfaces.cache.ExpiringValue;
 import org.openhab.binding.accuweather.internal.interfaces.cache.ThrowingSupplier;
@@ -62,6 +64,16 @@ public class AccuweatherHttpApiSupplierFactory<HttpRespT, CacheValT, CacheExcT e
                 HttpRespT vj = adminAreas.value();
                 // FIXME(denisacostaq@gmail.com): vj should be deduced as string
                 final List<AdministrativeArea> adminAreasModel = mapper.deserializeAdminAreasResult((String) vj);
+                adminAreasModel.forEach(adminArea -> {
+                    if (!StringUtils.isEmpty(adminArea.countryID)) {
+                        if (StringUtils.equals(countryDomainName, adminArea.countryID)) {
+                            logger.warn("countryDomainName {} and countryID {} does not match, contact the developer",
+                                    countryDomainName, adminArea.countryID);
+                        }
+                    } else {
+                        logger.debug("Empty country id received in admin area.");
+                    }
+                });
                 if (Objects.isNull(adminAreasModel)) {
                     // FIXME(denisacostaq@gmail.com): no cast
                     throw (CacheExcT) new RemoteErrorResponseException(

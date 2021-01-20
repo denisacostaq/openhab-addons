@@ -42,6 +42,12 @@ public class CurrentConditions {
     public CurrentConditions() {
     }
 
+    public CurrentConditions(String weatherText, boolean isDayTime, Temperature temperature) {
+        this.weatherText = weatherText;
+        this.isDayTime = isDayTime;
+        this.temperature = temperature;
+    }
+
     public CurrentConditions(Date localObservationDateTime, String weatherText, boolean hasPrecipitation,
             Object precipitationType, boolean isDayTime, Temperature temperature) {
         this.localObservationDateTime = localObservationDateTime;
