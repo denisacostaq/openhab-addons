@@ -82,6 +82,6 @@ public class ExpiringCacheImpl<V, E extends Throwable> implements ExpiringCache<
      */
     @Override
     public boolean isExpired() {
-        return !value.get().stillValid(new Date(Instant.now().toEpochMilli()));
+        return Objects.isNull(value.get()) || !value.get().stillValid(new Date(Instant.now().toEpochMilli()));
     }
 }
