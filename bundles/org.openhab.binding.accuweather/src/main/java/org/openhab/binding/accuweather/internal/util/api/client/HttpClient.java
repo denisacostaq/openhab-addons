@@ -29,6 +29,7 @@ import org.eclipse.jetty.http.DateParser;
 import org.eclipse.jetty.http.HttpField;
 import org.openhab.binding.accuweather.internal.exceptions.HttpErrorResponseException;
 import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
+import org.openhab.binding.accuweather.internal.interfaces.HttpClientRawInterface;
 import org.openhab.binding.accuweather.internal.interfaces.ObjectMapper;
 import org.openhab.binding.accuweather.internal.interfaces.cache.ExpiringValue;
 import org.openhab.binding.accuweather.internal.model.pojo.ErrorResponse;

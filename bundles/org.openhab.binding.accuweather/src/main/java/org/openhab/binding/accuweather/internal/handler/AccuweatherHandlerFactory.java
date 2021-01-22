@@ -24,6 +24,7 @@ import org.openhab.binding.accuweather.internal.discovery.AccuweatherDiscoverySe
 import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
 import org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiSupplierFactoryInterface;
 import org.openhab.binding.accuweather.internal.interfaces.GeoInfo;
+import org.openhab.binding.accuweather.internal.interfaces.HttpClientRawInterface;
 import org.openhab.binding.accuweather.internal.interfaces.ObjectMapper;
 import org.openhab.binding.accuweather.internal.interfaces.cache.ExpiringCacheMapInterface;
 import org.openhab.binding.accuweather.internal.interfaces.cache.ExpiringValue;
