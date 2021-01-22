@@ -1,0 +1,623 @@
+[
+  {
+    "Version": 1,
+    "Key": "51077",
+    "Type": "City",
+    "Rank": 75,
+    "LocalizedName": "Kubratovo",
+    "EnglishName": "Kubratovo",
+    "PrimaryPostalCode": "",
+    "Region": {
+      "ID": "EUR",
+      "LocalizedName": "Europe",
+      "EnglishName": "Europe"
+    },
+    "Country": {
+      "ID": "BG",
+      "LocalizedName": "Bulgaria",
+      "EnglishName": "Bulgaria"
+    },
+    "AdministrativeArea": {
+      "ID": "22",
+      "LocalizedName": "Sofia City",
+      "EnglishName": "Sofia City",
+      "Level": 1,
+      "LocalizedType": "District",
+      "EnglishType": "District",
+      "CountryID": "BG"
+    },
+    "TimeZone": {
+      "Code": "EET",
+      "Name": "Europe/Sofia",
+      "GmtOffset": 2,
+      "IsDaylightSaving": false,
+      "NextOffsetChange": "2021-03-28T01:00:00Z"
+    },
+    "GeoPosition": {
+      "Latitude": 42.767,
+      "Longitude": 23.35,
+      "Elevation": {
+        "Metric": {
+          "Value": 517,
+          "Unit": "m",
+          "UnitType": 5
+        },
+        "Imperial": {
+          "Value": 1695,
+          "Unit": "ft",
+          "UnitType": 0
+        }
+      }
+    },
+    "IsAlias": false,
+    "SupplementalAdminAreas": [],
+    "DataSets": [
+      "AirQualityCurrentConditions",
+      "AirQualityForecasts",
+      "Alerts",
+      "ForecastConfidence",
+      "FutureRadar",
+      "MinuteCast",
+      "Radar"
+    ]
+  },
+  {
+    "Version": 1,
+    "Key": "51089",
+    "Type": "City",
+    "Rank": 75,
+    "LocalizedName": "Svetovrachane",
+    "EnglishName": "Svetovrachane",
+    "PrimaryPostalCode": "",
+    "Region": {
+      "ID": "EUR",
+      "LocalizedName": "Europe",
+      "EnglishName": "Europe"
+    },
+    "Country": {
+      "ID": "BG",
+      "LocalizedName": "Bulgaria",
+      "EnglishName": "Bulgaria"
+    },
+    "AdministrativeArea": {
+      "ID": "22",
+      "LocalizedName": "Sofia City",
+      "EnglishName": "Sofia City",
+      "Level": 1,
+      "LocalizedType": "District",
+      "EnglishType": "District",
+      "CountryID": "BG"
+    },
+    "TimeZone": {
+      "Code": "EET",
+      "Name": "Europe/Sofia",
+      "GmtOffset": 2,
+      "IsDaylightSaving": false,
+      "NextOffsetChange": "2021-03-28T01:00:00Z"
+    },
+    "GeoPosition": {
+      "Latitude": 42.783,
+      "Longitude": 23.4,
+      "Elevation": {
+        "Metric": {
+          "Value": 548,
+          "Unit": "m",
+          "UnitType": 5
+        },
+        "Imperial": {
+          "Value": 1797,
+          "Unit": "ft",
+          "UnitType": 0
+        }
+      }
+    },
+    "IsAlias": false,
+    "SupplementalAdminAreas": [],
+    "DataSets": [
+      "AirQualityCurrentConditions",
+      "AirQualityForecasts",
+      "Alerts",
+      "ForecastConfidence",
+      "FutureRadar",
+      "MinuteCast",
+      "Radar"
+    ]
+  },
+  {
+    "Version": 1,
+    "Key": "46303",
+    "Type": "City",
+    "Rank": 85,
+    "LocalizedName": "Busmantsi",
+    "EnglishName": "Busmantsi",
+    "PrimaryPostalCode": "",
+    "Region": {
+      "ID": "EUR",
+      "LocalizedName": "Europe",
+      "EnglishName": "Europe"
+    },
+    "Country": {
+      "ID": "BG",
+      "LocalizedName": "Bulgaria",
+      "EnglishName": "Bulgaria"
+    },
+    "AdministrativeArea": {
+      "ID": "22",
+      "LocalizedName": "Sofia City",
+      "EnglishName": "Sofia City",
+      "Level": 1,
+      "LocalizedType": "District",
+      "EnglishType": "District",
+      "CountryID": "BG"
+    },
+    "TimeZone": {
+      "Code": "EET",
+      "Name": "Europe/Sofia",
+      "GmtOffset": 2,
+      "IsDaylightSaving": false,
+      "NextOffsetChange": "2021-03-28T01:00:00Z"
+    },
+    "GeoPosition": {
+      "Latitude": 42.683,
+      "Longitude": 23.433,
+      "Elevation": {
+        "Metric": {
+          "Value": 542,
+          "Unit": "m",
+          "UnitType": 5
+        },
+        "Imperial": {
+          "Value": 1777,
+          "Unit": "ft",
+          "UnitType": 0
+        }
+      }
+    },
+    "IsAlias": false,
+    "SupplementalAdminAreas": [],
+    "DataSets": [
+      "AirQualityCurrentConditions",
+      "AirQualityForecasts",
+      "Alerts",
+      "ForecastConfidence",
+      "FutureRadar",
+      "MinuteCast",
+      "Radar"
+    ]
+  },
+  {
+    "Version": 1,
+    "Key": "46304",
+    "Type": "City",
+    "Rank": 85,
+    "LocalizedName": "Chepintsi",
+    "EnglishName": "Chepintsi",
+    "PrimaryPostalCode": "",
+    "Region": {
+      "ID": "EUR",
+      "LocalizedName": "Europe",
+      "EnglishName": "Europe"
+    },
+    "Country": {
+      "ID": "BG",
+      "LocalizedName": "Bulgaria",
+      "EnglishName": "Bulgaria"
+    },
+    "AdministrativeArea": {
+      "ID": "22",
+      "LocalizedName": "Sofia City",
+      "EnglishName": "Sofia City",
+      "Level": 1,
+      "LocalizedType": "District",
+      "EnglishType": "District",
+      "CountryID": "BG"
+    },
+    "TimeZone": {
+      "Code": "EET",
+      "Name": "Europe/Sofia",
+      "GmtOffset": 2,
+      "IsDaylightSaving": false,
+      "NextOffsetChange": "2021-03-28T01:00:00Z"
+    },
+    "GeoPosition": {
+      "Latitude": 42.767,
+      "Longitude": 23.433,
+      "Elevation": {
+        "Metric": {
+          "Value": 569,
+          "Unit": "m",
+          "UnitType": 5
+        },
+        "Imperial": {
+          "Value": 1866,
+          "Unit": "ft",
+          "UnitType": 0
+        }
+      }
+    },
+    "IsAlias": false,
+    "SupplementalAdminAreas": [],
+    "DataSets": [
+      "AirQualityCurrentConditions",
+      "AirQualityForecasts",
+      "Alerts",
+      "ForecastConfidence",
+      "FutureRadar",
+      "MinuteCast",
+      "Radar"
+    ]
+  },
+  {
+    "Version": 1,
+    "Key": "46310",
+    "Type": "City",
+    "Rank": 85,
+    "LocalizedName": "German",
+    "EnglishName": "German",
+    "PrimaryPostalCode": "",
+    "Region": {
+      "ID": "EUR",
+      "LocalizedName": "Europe",
+      "EnglishName": "Europe"
+    },
+    "Country": {
+      "ID": "BG",
+      "LocalizedName": "Bulgaria",
+      "EnglishName": "Bulgaria"
+    },
+    "AdministrativeArea": {
+      "ID": "22",
+      "LocalizedName": "Sofia City",
+      "EnglishName": "Sofia City",
+      "Level": 1,
+      "LocalizedType": "District",
+      "EnglishType": "District",
+      "CountryID": "BG"
+    },
+    "TimeZone": {
+      "Code": "EET",
+      "Name": "Europe/Sofia",
+      "GmtOffset": 2,
+      "IsDaylightSaving": false,
+      "NextOffsetChange": "2021-03-28T01:00:00Z"
+    },
+    "GeoPosition": {
+      "Latitude": 42.617,
+      "Longitude": 23.417,
+      "Elevation": {
+        "Metric": {
+          "Value": 589,
+          "Unit": "m",
+          "UnitType": 5
+        },
+        "Imperial": {
+          "Value": 1931,
+          "Unit": "ft",
+          "UnitType": 0
+        }
+      }
+    },
+    "IsAlias": false,
+    "SupplementalAdminAreas": [],
+    "DataSets": [
+      "AirQualityCurrentConditions",
+      "AirQualityForecasts",
+      "Alerts",
+      "ForecastConfidence",
+      "FutureRadar",
+      "MinuteCast",
+      "Radar"
+    ]
+  },
+  {
+    "Version": 1,
+    "Key": "46315",
+    "Type": "City",
+    "Rank": 85,
+    "LocalizedName": "Kazichene",
+    "EnglishName": "Kazichene",
+    "PrimaryPostalCode": "",
+    "Region": {
+      "ID": "EUR",
+      "LocalizedName": "Europe",
+      "EnglishName": "Europe"
+    },
+    "Country": {
+      "ID": "BG",
+      "LocalizedName": "Bulgaria",
+      "EnglishName": "Bulgaria"
+    },
+    "AdministrativeArea": {
+      "ID": "22",
+      "LocalizedName": "Sofia City",
+      "EnglishName": "Sofia City",
+      "Level": 1,
+      "LocalizedType": "District",
+      "EnglishType": "District",
+      "CountryID": "BG"
+    },
+    "TimeZone": {
+      "Code": "EET",
+      "Name": "Europe/Sofia",
+      "GmtOffset": 2,
+      "IsDaylightSaving": false,
+      "NextOffsetChange": "2021-03-28T01:00:00Z"
+    },
+    "GeoPosition": {
+      "Latitude": 42.667,
+      "Longitude": 23.467,
+      "Elevation": {
+        "Metric": {
+          "Value": 544,
+          "Unit": "m",
+          "UnitType": 5
+        },
+        "Imperial": {
+          "Value": 1784,
+          "Unit": "ft",
+          "UnitType": 0
+        }
+      }
+    },
+    "IsAlias": false,
+    "SupplementalAdminAreas": [],
+    "DataSets": [
+      "AirQualityCurrentConditions",
+      "AirQualityForecasts",
+      "Alerts",
+      "ForecastConfidence",
+      "FutureRadar",
+      "MinuteCast",
+      "Radar"
+    ]
+  },
+  {
+    "Version": 1,
+    "Key": "51076",
+    "Type": "City",
+    "Rank": 85,
+    "LocalizedName": "Krivina",
+    "EnglishName": "Krivina",
+    "PrimaryPostalCode": "",
+    "Region": {
+      "ID": "EUR",
+      "LocalizedName": "Europe",
+      "EnglishName": "Europe"
+    },
+    "Country": {
+      "ID": "BG",
+      "LocalizedName": "Bulgaria",
+      "EnglishName": "Bulgaria"
+    },
+    "AdministrativeArea": {
+      "ID": "22",
+      "LocalizedName": "Sofia City",
+      "EnglishName": "Sofia City",
+      "Level": 1,
+      "LocalizedType": "District",
+      "EnglishType": "District",
+      "CountryID": "BG"
+    },
+    "TimeZone": {
+      "Code": "EET",
+      "Name": "Europe/Sofia",
+      "GmtOffset": 2,
+      "IsDaylightSaving": false,
+      "NextOffsetChange": "2021-03-28T01:00:00Z"
+    },
+    "GeoPosition": {
+      "Latitude": 42.683,
+      "Longitude": 23.467,
+      "Elevation": {
+        "Metric": {
+          "Value": 538,
+          "Unit": "m",
+          "UnitType": 5
+        },
+        "Imperial": {
+          "Value": 1764,
+          "Unit": "ft",
+          "UnitType": 0
+        }
+      }
+    },
+    "IsAlias": false,
+    "SupplementalAdminAreas": [],
+    "DataSets": [
+      "AirQualityCurrentConditions",
+      "AirQualityForecasts",
+      "Alerts",
+      "ForecastConfidence",
+      "FutureRadar",
+      "MinuteCast",
+      "Radar"
+    ]
+  },
+  {
+    "Version": 1,
+    "Key": "51082",
+    "Type": "City",
+    "Rank": 85,
+    "LocalizedName": "Mirovyane",
+    "EnglishName": "Mirovyane",
+    "PrimaryPostalCode": "",
+    "Region": {
+      "ID": "EUR",
+      "LocalizedName": "Europe",
+      "EnglishName": "Europe"
+    },
+    "Country": {
+      "ID": "BG",
+      "LocalizedName": "Bulgaria",
+      "EnglishName": "Bulgaria"
+    },
+    "AdministrativeArea": {
+      "ID": "22",
+      "LocalizedName": "Sofia City",
+      "EnglishName": "Sofia City",
+      "Level": 1,
+      "LocalizedType": "District",
+      "EnglishType": "District",
+      "CountryID": "BG"
+    },
+    "TimeZone": {
+      "Code": "EET",
+      "Name": "Europe/Sofia",
+      "GmtOffset": 2,
+      "IsDaylightSaving": false,
+      "NextOffsetChange": "2021-03-28T01:00:00Z"
+    },
+    "GeoPosition": {
+      "Latitude": 42.783,
+      "Longitude": 23.3,
+      "Elevation": {
+        "Metric": {
+          "Value": 528,
+          "Unit": "m",
+          "UnitType": 5
+        },
+        "Imperial": {
+          "Value": 1731,
+          "Unit": "ft",
+          "UnitType": 0
+        }
+      }
+    },
+    "IsAlias": false,
+    "SupplementalAdminAreas": [],
+    "DataSets": [
+      "AirQualityCurrentConditions",
+      "AirQualityForecasts",
+      "Alerts",
+      "ForecastConfidence",
+      "FutureRadar",
+      "MinuteCast",
+      "Radar"
+    ]
+  },
+  {
+    "Version": 1,
+    "Key": "51084",
+    "Type": "City",
+    "Rank": 85,
+    "LocalizedName": "Negovan",
+    "EnglishName": "Negovan",
+    "PrimaryPostalCode": "",
+    "Region": {
+      "ID": "EUR",
+      "LocalizedName": "Europe",
+      "EnglishName": "Europe"
+    },
+    "Country": {
+      "ID": "BG",
+      "LocalizedName": "Bulgaria",
+      "EnglishName": "Bulgaria"
+    },
+    "AdministrativeArea": {
+      "ID": "22",
+      "LocalizedName": "Sofia City",
+      "EnglishName": "Sofia City",
+      "Level": 1,
+      "LocalizedType": "District",
+      "EnglishType": "District",
+      "CountryID": "BG"
+    },
+    "TimeZone": {
+      "Code": "EET",
+      "Name": "Europe/Sofia",
+      "GmtOffset": 2,
+      "IsDaylightSaving": false,
+      "NextOffsetChange": "2021-03-28T01:00:00Z"
+    },
+    "GeoPosition": {
+      "Latitude": 42.767,
+      "Longitude": 23.417,
+      "Elevation": {
+        "Metric": {
+          "Value": 550,
+          "Unit": "m",
+          "UnitType": 5
+        },
+        "Imperial": {
+          "Value": 1804,
+          "Unit": "ft",
+          "UnitType": 0
+        }
+      }
+    },
+    "IsAlias": false,
+    "SupplementalAdminAreas": [],
+    "DataSets": [
+      "AirQualityCurrentConditions",
+      "AirQualityForecasts",
+      "Alerts",
+      "ForecastConfidence",
+      "FutureRadar",
+      "MinuteCast",
+      "Radar"
+    ]
+  },
+  {
+    "Version": 1,
+    "Key": "51091",
+    "Type": "City",
+    "Rank": 85,
+    "LocalizedName": "Voluyak",
+    "EnglishName": "Voluyak",
+    "PrimaryPostalCode": "",
+    "Region": {
+      "ID": "EUR",
+      "LocalizedName": "Europe",
+      "EnglishName": "Europe"
+    },
+    "Country": {
+      "ID": "BG",
+      "LocalizedName": "Bulgaria",
+      "EnglishName": "Bulgaria"
+    },
+    "AdministrativeArea": {
+      "ID": "22",
+      "LocalizedName": "Sofia City",
+      "EnglishName": "Sofia City",
+      "Level": 1,
+      "LocalizedType": "District",
+      "EnglishType": "District",
+      "CountryID": "BG"
+    },
+    "TimeZone": {
+      "Code": "EET",
+      "Name": "Europe/Sofia",
+      "GmtOffset": 2,
+      "IsDaylightSaving": false,
+      "NextOffsetChange": "2021-03-28T01:00:00Z"
+    },
+    "GeoPosition": {
+      "Latitude": 42.767,
+      "Longitude": 23.25,
+      "Elevation": {
+        "Metric": {
+          "Value": 551,
+          "Unit": "m",
+          "UnitType": 5
+        },
+        "Imperial": {
+          "Value": 1807,
+          "Unit": "ft",
+          "UnitType": 0
+        }
+      }
+    },
+    "IsAlias": false,
+    "SupplementalAdminAreas": [],
+    "DataSets": [
+      "AirQualityCurrentConditions",
+      "AirQualityForecasts",
+      "Alerts",
+      "ForecastConfidence",
+      "FutureRadar",
+      "MinuteCast",
+      "Radar"
+    ]
+  }
+]
+ 

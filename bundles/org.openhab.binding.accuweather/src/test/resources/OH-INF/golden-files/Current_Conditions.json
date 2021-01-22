@@ -1,0 +1,25 @@
+[
+    {
+        "LocalObservationDateTime": "2021-01-12T12:11:00+02:00",
+        "EpochTime": 1610446260,
+        "WeatherText": "Light snow and fog",
+        "WeatherIcon": 19,
+        "HasPrecipitation": true,
+        "PrecipitationType": "Snow",
+        "IsDayTime": true,
+        "Temperature": {
+            "Metric": {
+                "Value": 1.1,
+                "Unit": "C",
+                "UnitType": 17
+            },
+            "Imperial": {
+                "Value": 34.0,
+                "Unit": "F",
+                "UnitType": 18
+            }
+        },
+        "MobileLink": "http://m.accuweather.com/en/bg/sofia/51097/current-weather/51097?lang=en-us",
+        "Link": "http://www.accuweather.com/en/bg/sofia/51097/current-weather/51097?lang=en-us"
+    }
+]

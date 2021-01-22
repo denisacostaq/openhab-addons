@@ -1,0 +1,254 @@
+[
+  {
+    "ID": "01",
+    "LocalizedName": "Blagoevgrad",
+    "EnglishName": "Blagoevgrad",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  },
+  {
+    "ID": "02",
+    "LocalizedName": "Burgas",
+    "EnglishName": "Burgas",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  },
+  {
+    "ID": "03",
+    "LocalizedName": "Varna",
+    "EnglishName": "Varna",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  },
+  {
+    "ID": "04",
+    "LocalizedName": "Veliko Turnovo",
+    "EnglishName": "Veliko Turnovo",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  },
+  {
+    "ID": "05",
+    "LocalizedName": "Vidin",
+    "EnglishName": "Vidin",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  },
+  {
+    "ID": "06",
+    "LocalizedName": "Vratsa",
+    "EnglishName": "Vratsa",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  },
+  {
+    "ID": "07",
+    "LocalizedName": "Gabrovo",
+    "EnglishName": "Gabrovo",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  },
+  {
+    "ID": "08",
+    "LocalizedName": "Dobrich",
+    "EnglishName": "Dobrich",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  },
+  {
+    "ID": "09",
+    "LocalizedName": "Kardzhali",
+    "EnglishName": "Kardzhali",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  },
+  {
+    "ID": "10",
+    "LocalizedName": "Kyustendil",
+    "EnglishName": "Kyustendil",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  },
+  {
+    "ID": "11",
+    "LocalizedName": "Lovech",
+    "EnglishName": "Lovech",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  },
+  {
+    "ID": "12",
+    "LocalizedName": "Montana",
+    "EnglishName": "Montana",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  },
+  {
+    "ID": "13",
+    "LocalizedName": "Pazardzhik",
+    "EnglishName": "Pazardzhik",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  },
+  {
+    "ID": "14",
+    "LocalizedName": "Pernik",
+    "EnglishName": "Pernik",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  },
+  {
+    "ID": "15",
+    "LocalizedName": "Pleven",
+    "EnglishName": "Pleven",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  },
+  {
+    "ID": "16",
+    "LocalizedName": "Plovdiv",
+    "EnglishName": "Plovdiv",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  },
+  {
+    "ID": "17",
+    "LocalizedName": "Razgrad",
+    "EnglishName": "Razgrad",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  },
+  {
+    "ID": "18",
+    "LocalizedName": "Ruse",
+    "EnglishName": "Ruse",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  },
+  {
+    "ID": "19",
+    "LocalizedName": "Silistra",
+    "EnglishName": "Silistra",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  },
+  {
+    "ID": "20",
+    "LocalizedName": "Sliven",
+    "EnglishName": "Sliven",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  },
+  {
+    "ID": "21",
+    "LocalizedName": "Smolyan",
+    "EnglishName": "Smolyan",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  },
+  {
+    "ID": "22",
+    "LocalizedName": "Sofia City",
+    "EnglishName": "Sofia City",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  },
+  {
+    "ID": "23",
+    "LocalizedName": "Sofia",
+    "EnglishName": "Sofia",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  },
+  {
+    "ID": "24",
+    "LocalizedName": "Stara Zagora",
+    "EnglishName": "Stara Zagora",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  },
+  {
+    "ID": "25",
+    "LocalizedName": "Turgovishte",
+    "EnglishName": "Turgovishte",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  },
+  {
+    "ID": "26",
+    "LocalizedName": "Khaskovo",
+    "EnglishName": "Khaskovo",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  },
+  {
+    "ID": "27",
+    "LocalizedName": "Shumen",
+    "EnglishName": "Shumen",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  },
+  {
+    "ID": "28",
+    "LocalizedName": "Yambol",
+    "EnglishName": "Yambol",
+    "Level": 1,
+    "LocalizedType": "District",
+    "EnglishType": "District",
+    "CountryID": "bg"
+  }
+]
