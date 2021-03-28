@@ -12,6 +12,8 @@
 			<channel id="observation_time" typeId="observation_time-channel"/>
 			<channel id="temperature" typeId="temperature-channel"/>
 			<channel id="precipitation_type" typeId="precipitation_type-channel"/>
+			<channel id="weather_text" typeId="weather_text-channel"/>
+			<channel id="weather_icon" typeId="weather_icon-channel"/>
 		</channels>
 	</channel-group-type>
 </thing:thing-descriptions>

@@ -79,7 +79,7 @@ public class AccuweatherStation<HttpRespT, CacheValT, E extends Throwable>
     }
 
     @Override
-    public @Nullable String getPrecipitationType() throws E {
+    public String getPrecipitationType() throws E {
         if (hasPrecipitation()) {
             CurrentConditions currentConditions = currentConditions();
             // TODO(denisacostaq@gmail.com): currentConditions.precipitationType != nul
@@ -87,6 +87,18 @@ public class AccuweatherStation<HttpRespT, CacheValT, E extends Throwable>
         } else {
             return "None"; // TODO(denisacostaq@gmail.com): named var
         }
+    }
+
+    @Override
+    public String getWeatherText() throws E {
+        CurrentConditions currentConditions = currentConditions();
+        return currentConditions.weatherText;
+    }
+
+    @Override
+    public @Nullable Integer getWeatherIcon() throws E {
+        CurrentConditions currentConditions = currentConditions();
+        return currentConditions.weatherIcon;
     }
 
     @Override

@@ -37,4 +37,6 @@ public class AccuweatherBindingConstants {
     public static final String CH_TEMPERATURE = "temperature";
     public static final String CH_OBSERVATION_TIME = "observation_time";
     public static final String CH_PRECIPITATION_TYPE = "precipitation_type";
+    public static final String CH_WEATHER_TEXT = "weather_text";
+    public static final String CH_WEATHER_ICON = "weather_icon";
 }

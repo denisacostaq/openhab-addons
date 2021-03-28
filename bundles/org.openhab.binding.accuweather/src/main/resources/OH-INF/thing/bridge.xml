@@ -8,6 +8,7 @@
 	<bridge-type id="bridge">
 		<label>Accuweather Account</label>
 		<description>Represents an account at Accuweather (accuweather.com)</description>
+		<category>WebService</category>
 		<config-description-ref uri="thing-type:accuweather:bridge"/>
 	</bridge-type>
 </thing:thing-descriptions>

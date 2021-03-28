@@ -47,8 +47,12 @@ public interface WeatherStation<HttpRespT, CacheValT, E extends Throwable> {
     @Nullable
     Boolean hasPrecipitation() throws E;
 
-    @Nullable
     String getPrecipitationType() throws E;
+
+    String getWeatherText() throws E;
+
+    @Nullable
+    Integer getWeatherIcon() throws E;
 
     boolean verifyStationConfigParams(String countryCode, Integer adminCode, String cityName) throws E;
 }

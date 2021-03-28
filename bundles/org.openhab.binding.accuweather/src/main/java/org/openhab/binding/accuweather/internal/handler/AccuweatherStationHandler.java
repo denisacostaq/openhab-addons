@@ -31,11 +31,13 @@ import org.openhab.binding.accuweather.internal.interfaces.WeatherStation;
 import org.openhab.binding.accuweather.internal.util.api.AccuweatherStation;
 import org.openhab.core.library.types.DateTimeType;
 import org.openhab.core.library.types.DecimalType;
+import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.*;
 import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
+import org.openhab.core.types.UnDefType;
 import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,6 +118,28 @@ public class AccuweatherStationHandler<HttpRespT, CacheValT, E extends Throwable
                     logger.warn("unable to get precipitation type, details: {}", e.getMessage());
                 }
                 break;
+            case CH_WEATHER_TEXT:
+                try {
+                    setWeatherText(channelUID, weatherStation.getWeatherText());
+                } catch (Throwable exc) {
+                    // FIXME(denisacostaq@gmail.com): no cast
+                    E e = (E) exc;
+                    // TODO(denisacostaq@gmail.com):
+                    // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+                    logger.warn("unable to get precipitation type, details: {}", e.getMessage());
+                }
+                break;
+            case CH_WEATHER_ICON:
+                try {
+                    setWeatherIcon(channelUID, weatherStation.getWeatherIcon());
+                } catch (Throwable exc) {
+                    // FIXME(denisacostaq@gmail.com): no cast
+                    E e = (E) exc;
+                    // TODO(denisacostaq@gmail.com):
+                    // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+                    logger.warn("unable to get precipitation type, details: {}", e.getMessage());
+                }
+                break;
             default:
                 logger.trace("channel UID {} not handled in refresh", channelUID.toString());
                 break;
@@ -156,8 +180,18 @@ public class AccuweatherStationHandler<HttpRespT, CacheValT, E extends Throwable
                     poolingJob = new AccuweatherDataSource(scheduler, weatherStation).start((temp, date) -> {
                         ChannelUID chTemp = new ChannelUID(this.getThing().getUID(), CHG_CURRENT, CH_TEMPERATURE);
                         ChannelUID chDate = new ChannelUID(this.getThing().getUID(), CHG_CURRENT, CH_OBSERVATION_TIME);
+                        ChannelUID chPres = new ChannelUID(this.getThing().getUID(), CHG_CURRENT,
+                                CH_PRECIPITATION_TYPE);
+                        ChannelUID wtrTxt = new ChannelUID(this.getThing().getUID(), CHG_CURRENT, CH_WEATHER_TEXT);
+                        final ChannelUID wtrIcon = new ChannelUID(this.getThing().getUID(), CHG_CURRENT,
+                                CH_WEATHER_ICON);
                         setTemperature(chTemp, temp);
                         setObservationTime(chDate, date);
+                        setPrecipitationType(chPres, "chPres");
+                        setWeatherText(wtrTxt, Arrays
+                                .asList("Este texto ex random 1", "Este texto ex random 2", "Este texto ex random 3")
+                                .get(new Random().nextInt(3)));
+                        setWeatherIcon(wtrIcon, 1);
                     }, () -> {
                         this.cancelPoolingJob();
                     });
@@ -246,12 +280,39 @@ public class AccuweatherStationHandler<HttpRespT, CacheValT, E extends Throwable
         }
     }
 
-    private void setPrecipitationType(ChannelUID channelUID, @Nullable String precipitationType) {
+    private void setPrecipitationType(ChannelUID channelUID, String precipitationType) {
         // TODO(denisacostaq@gmail.com): change to be based on exceptions
+        List<OnOffType> states = Arrays.asList(OnOffType.ON, OnOffType.OFF);
+        OnOffType s = states.get(new Random().nextInt(2));
+        // FIXME never is null
         if (Objects.isNull(precipitationType)) {
             updateStatus(ThingStatus.OFFLINE);
         } else {
-            updateState(channelUID.getId(), new StringType(precipitationType));
+            logger.warn("updateState(channelUID.getId(), new StringType(precipitationType)) {}, {}", channelUID.getId(),
+                    s.toString());
+            updateState(channelUID.getId(), s);
+            // updateState(channelUID.getId(), new StringType(s.toString()));
+        }
+    }
+
+    private void setWeatherText(ChannelUID channelUID, String weatherText) {
+        logger.warn("updateState(channelUID.getId(), new StringType(weatherText)) {}, {}", channelUID.getId(),
+                weatherText);
+        updateState(channelUID.getId(), StringType.valueOf(weatherText));
+    }
+
+    private void setWeatherIcon(ChannelUID channelUID, @Nullable Integer weatherIcon) {
+        // FIXME never is null
+        weatherIcon = new Random().nextInt(8) + 1;
+        if (weatherIcon == 3) {
+            weatherIcon = null;
+        }
+        logger.warn("updateState(channelUID.getId(), new StringType(weatherIcon)) {}, {}", channelUID.getId(),
+                weatherIcon);
+        if (Objects.isNull(weatherIcon)) {
+            updateState(channelUID.getId(), UnDefType.UNDEF);
+        } else {
+            updateState(channelUID.getId(), new DecimalType(weatherIcon));
         }
     }
 

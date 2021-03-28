@@ -41,8 +41,7 @@ import org.openhab.binding.accuweather.internal.util.cache.ExpiringValueImpl;
  * @author Alvaro Denis <denisacostaq@gmail.com> - Initial contribution
  */
 class AccuweatherHttpApiSupplierFactoryTest {
-    private @Mock
-    HttpClientRawInterface<ExpiringValue<String>, @NonNull RemoteErrorResponseException> httpClientRaw;
+    private @Mock HttpClientRawInterface<ExpiringValue<String>, @NonNull RemoteErrorResponseException> httpClientRaw;
     private @Mock ObjectMapper mapper;
     private AccuweatherHttpApiSupplierFactoryInterface<String, Object, @NonNull RemoteErrorResponseException> httpApiSupplierFactory;
 

@@ -18,9 +18,65 @@
 		<state readOnly="true" pattern="%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS"/>
 	</channel-type>
 	<channel-type id="precipitation_type-channel">
-		<item-type>String</item-type>
+		<item-type>Switch</item-type>
 		<label>Precipitation Type</label>
-		<category>Rain</category>
+		<category>Switch</category>
 		<state readOnly="true"/>
+	</channel-type>
+	<channel-type id="weather_text-channel">
+		<item-type>String</item-type>
+		<label>Weather Text</label>
+		<category>Sunrise</category>
+		<state readOnly="true"/>
+	</channel-type>
+	<channel-type id="weather_icon-channel">
+		<item-type>Number</item-type>
+		<label>Weather Icon</label>
+		<category>Weather</category>
+		<state readOnly="true">
+<!--			https://developer.accuweather.com/weather-icons-->
+			<options>
+				<option value="1">Sunny</option>
+				<option value="2">Mostly Sunny</option>
+				<option value="3">Partly Sunny</option>
+				<option value="4">Intermittent Clouds</option>
+				<option value="5">Hazy Sunshine</option>
+				<option value="6">Mostly Cloudy</option>
+				<option value="7">Cloudy</option>
+				<option value="8">Dreary (Overcast)</option>
+				<option value="11">Fog</option>
+				<option value="12">Showers</option>
+				<option value="13">Mostly Cloudy w/ Showers</option>
+				<option value="14">Partly Sunny w/ Showers</option>
+				<option value="15">T-Storms</option>
+				<option value="16">Mostly Cloudy w/ T-Storms</option>
+				<option value="17">Partly Sunny w/ T-Storms</option>
+				<option value="18">Rain</option>
+				<option value="19">Flurries</option>
+				<option value="20">Mostly Cloudy w/ Flurries</option>
+				<option value="21">Partly Sunny w/ Flurries</option>
+				<option value="22">Snow</option>
+				<option value="23">Mostly Cloudy w/ Snow</option>
+				<option value="24">Ice</option>
+				<option value="25">Sleet</option>
+				<option value="26">Freezing Rain</option>
+				<option value="29">Rain and Snow</option>
+				<option value="30">Hot</option>
+				<option value="31">Cold</option>
+				<option value="32">Windy</option>
+				<option value="33">Clear</option>
+				<option value="34">Mostly Clear</option>
+				<option value="35">Partly Cloudy</option>
+				<option value="36">Intermittent Clouds</option>
+				<option value="37">Hazy Moonlight</option>
+				<option value="38">Mostly Cloudy</option>
+				<option value="39">Partly Cloudy w/ Showers</option>
+				<option value="40">Mostly Cloudy w/ Showers</option>
+				<option value="41">Partly Cloudy w/ T-Storms</option>
+				<option value="42">Mostly Cloudy w/ T-Storms</option>
+				<option value="43">Mostly Cloudy w/ Flurries</option>
+				<option value="44">Mostly Cloudy w/ Snow</option>
+			</options>
+		</state>
 	</channel-type>
 </thing:thing-descriptions>
