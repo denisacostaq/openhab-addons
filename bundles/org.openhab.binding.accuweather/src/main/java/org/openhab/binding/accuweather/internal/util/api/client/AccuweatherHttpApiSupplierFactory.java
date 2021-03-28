@@ -16,7 +16,7 @@ package org.openhab.binding.accuweather.internal.util.api.client;
 import java.util.List;
 import java.util.Objects;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.accuweather.internal.exceptions.HttpErrorResponseException;

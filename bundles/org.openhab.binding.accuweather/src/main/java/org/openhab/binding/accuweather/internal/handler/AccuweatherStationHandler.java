@@ -16,14 +16,13 @@ package org.openhab.binding.accuweather.internal.handler;
 import static org.openhab.binding.accuweather.internal.AccuweatherBindingConstants.*;
 
 import java.time.*;
-import java.util.Date;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import javax.measure.Quantity;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.accuweather.internal.config.AccuweatherStationConfiguration;

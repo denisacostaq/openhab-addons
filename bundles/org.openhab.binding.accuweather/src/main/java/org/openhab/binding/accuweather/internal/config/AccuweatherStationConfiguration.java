@@ -12,7 +12,7 @@
  */
 package org.openhab.binding.accuweather.internal.config;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**

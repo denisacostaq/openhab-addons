@@ -16,7 +16,7 @@ package org.openhab.binding.accuweather.internal.util;
 import java.util.Map;
 import java.util.Objects;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * The {@link Util} have some helper function.

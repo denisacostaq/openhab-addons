@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.openhab.binding.accuweather.internal.handler.AccuweatherBridgeHandler;
 import org.openhab.binding.accuweather.internal.interfaces.ObjectMapper;
 import org.openhab.binding.accuweather.internal.model.pojo.AdministrativeArea;
