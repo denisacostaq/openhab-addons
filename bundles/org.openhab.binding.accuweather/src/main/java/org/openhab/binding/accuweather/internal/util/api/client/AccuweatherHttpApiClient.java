@@ -18,9 +18,9 @@ import java.util.List;
 import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.jetbrains.annotations.NotNull;
 import org.openhab.binding.accuweather.internal.interfaces.AccuweatherHttpApiSupplierFactoryInterface;
 import org.openhab.binding.accuweather.internal.interfaces.GeoInfo;
 import org.openhab.binding.accuweather.internal.interfaces.cache.ExpiringCacheMapInterface;
@@ -147,7 +147,7 @@ public class AccuweatherHttpApiClient<HttpRespT, CacheValT, CacheExcT extends Th
         return !(Objects.isNull(adminAreas) || adminAreas.isEmpty());
     }
 
-    private String currentConditionsCacheKey(@NotNull CitySearchResult city) {
+    private String currentConditionsCacheKey(@NonNull CitySearchResult city) {
         return String.format("%s/%s/currentConditionsCacheKey", this.apiKey, city.key);
     }
 
@@ -155,11 +155,11 @@ public class AccuweatherHttpApiClient<HttpRespT, CacheValT, CacheExcT extends Th
         return String.format("%s/%s/neighborsCitiesCacheKey", this.apiKey, city.key);
     }
 
-    private String citySearchCacheKey(@NotNull AdministrativeArea adminCode, @NotNull CitySearchResult cityQuery) {
+    private String citySearchCacheKey(@NonNull AdministrativeArea adminCode, @NonNull CitySearchResult cityQuery) {
         return String.format("%s/%s/%s/%s", this.apiKey, adminCode.countryID, adminCode.iD, cityQuery.englishName);
     }
 
-    private String adminAreasCacheKey(@NotNull String countryDomainName) {
+    private String adminAreasCacheKey(@NonNull String countryDomainName) {
         return String.format("%s/%s", this.apiKey, countryDomainName);
     }
 

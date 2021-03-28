@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import org.jetbrains.annotations.NotNull;
+import org.eclipse.jdt.annotation.NonNull;
 import org.openhab.binding.accuweather.internal.model.pojo.AdministrativeArea;
 import org.openhab.binding.accuweather.internal.model.pojo.CitySearchResult;
 import org.openhab.binding.accuweather.internal.model.pojo.CurrentConditions;
@@ -95,7 +95,7 @@ public class DataSource {
         return (CurrentConditions) loadFile("Current_Conditions.json", CurrentConditions.class);
     }
 
-    private @NotNull List<CitySearchResult> loadCityNeighborsByLocationKey() throws FileNotFoundException {
+    private @NonNull List<CitySearchResult> loadCityNeighborsByLocationKey() throws FileNotFoundException {
         return Arrays
                 .asList((CitySearchResult[]) loadFile("City_NeighborsbylocationKey.json", CitySearchResult[].class));
     }
@@ -104,11 +104,11 @@ public class DataSource {
         return (CitySearchResult) loadFile("Geoposition_Search.json", CitySearchResult.class);
     }
 
-    private @NotNull List<AdministrativeArea> loadAdministrativeAreas() throws FileNotFoundException {
+    private @NonNull List<AdministrativeArea> loadAdministrativeAreas() throws FileNotFoundException {
         return Arrays.asList((AdministrativeArea[]) loadFile("Admin_Area_List.json", AdministrativeArea[].class));
     }
 
-    private @NotNull List<CitySearchResult> loadCitySearchResultsNarrowedByCountryCodeAndAdminCode()
+    private @NonNull List<CitySearchResult> loadCitySearchResultsNarrowedByCountryCodeAndAdminCode()
             throws FileNotFoundException {
         return Arrays
                 .asList((CitySearchResult[]) loadFile("City_Search_results_narrowed_by_countryCode_and_adminCode_.json",

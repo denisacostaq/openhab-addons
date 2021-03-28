@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
-import org.jetbrains.annotations.NotNull;
+import org.eclipse.jdt.annotation.NonNull;
 import org.openhab.binding.accuweather.internal.model.pojo.AdministrativeArea;
 import org.openhab.binding.accuweather.internal.model.pojo.CitySearchResult;
 import org.openhab.binding.accuweather.internal.model.pojo.CurrentConditions;
@@ -78,7 +78,7 @@ public class Generator {
         return min + new Random().nextInt(max - min);
     }
 
-    private static int getRandomIndex(@NotNull List<Object> lst) {
+    private static int getRandomIndex(@NonNull List<Object> lst) {
         return getRandomUint(0, lst.size() - 1);
     }
 }
