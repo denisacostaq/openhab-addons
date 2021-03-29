@@ -11,6 +11,20 @@
 		<category>Temperature</category>
 		<state readOnly="true" pattern="%.1f %unit%"/>
 	</channel-type>
+	<channel-type id="real_feel_temperature-channel">
+		<item-type>Number:Temperature</item-type>
+		<label>Temperature2</label>
+		<description>Temperature 2</description>
+		<category>Temperature</category>
+		<state readOnly="true" pattern="%.1f %unit%"/>
+	</channel-type>
+	<channel-type id="real_feel_temperature_shade-channel">
+		<item-type>Number:Temperature</item-type>
+		<label>Temperature22</label>
+		<description>Temperature 3</description>
+		<category>Temperature</category>
+		<state readOnly="true" pattern="%.1f %unit%"/>
+	</channel-type>
 	<channel-type id="observation_time-channel">
 		<item-type>DateTime</item-type>
 		<label>Observation Time</label>
@@ -34,7 +48,7 @@
 		<label>Weather Icon</label>
 		<category>Weather</category>
 		<state readOnly="true">
-<!--			https://developer.accuweather.com/weather-icons-->
+			<!-- https://developer.accuweather.com/weather-icons -->
 			<options>
 				<option value="1">Sunny</option>
 				<option value="2">Mostly Sunny</option>

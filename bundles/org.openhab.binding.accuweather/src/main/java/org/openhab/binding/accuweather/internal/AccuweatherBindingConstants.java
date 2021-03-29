@@ -35,6 +35,8 @@ public class AccuweatherBindingConstants {
     // List of all Channel ids
     public static final String CHG_CURRENT = "current";
     public static final String CH_TEMPERATURE = "temperature";
+    public static final String CH_REAL_FEEL_TEMPERATURE = "real_feel_temperature";
+    public static final String CH_REAL_FEEL_TEMPERATURE_SHADE = "real_feel_temperature_shade";
     public static final String CH_OBSERVATION_TIME = "observation_time";
     public static final String CH_PRECIPITATION_TYPE = "precipitation_type";
     public static final String CH_WEATHER_TEXT = "weather_text";

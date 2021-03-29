@@ -179,6 +179,10 @@ public class AccuweatherStationHandler<HttpRespT, CacheValT, E extends Throwable
                     updateStatus(ThingStatus.ONLINE);
                     poolingJob = new AccuweatherDataSource(scheduler, weatherStation).start((temp, date) -> {
                         ChannelUID chTemp = new ChannelUID(this.getThing().getUID(), CHG_CURRENT, CH_TEMPERATURE);
+                        ChannelUID chRfTemp = new ChannelUID(this.getThing().getUID(), CHG_CURRENT,
+                                CH_REAL_FEEL_TEMPERATURE);
+                        ChannelUID chRfTempShade = new ChannelUID(this.getThing().getUID(), CHG_CURRENT,
+                                CH_REAL_FEEL_TEMPERATURE_SHADE);
                         ChannelUID chDate = new ChannelUID(this.getThing().getUID(), CHG_CURRENT, CH_OBSERVATION_TIME);
                         ChannelUID chPres = new ChannelUID(this.getThing().getUID(), CHG_CURRENT,
                                 CH_PRECIPITATION_TYPE);
@@ -186,6 +190,8 @@ public class AccuweatherStationHandler<HttpRespT, CacheValT, E extends Throwable
                         final ChannelUID wtrIcon = new ChannelUID(this.getThing().getUID(), CHG_CURRENT,
                                 CH_WEATHER_ICON);
                         setTemperature(chTemp, temp);
+                        setTemperature(chRfTemp, temp + 1);
+                        setTemperature(chRfTempShade, temp + 2);
                         setObservationTime(chDate, date);
                         setPrecipitationType(chPres, "chPres");
                         setWeatherText(wtrTxt, Arrays
@@ -259,6 +265,28 @@ public class AccuweatherStationHandler<HttpRespT, CacheValT, E extends Throwable
     }
 
     private void setTemperature(ChannelUID channelUID, @Nullable Float temp) {
+        // TODO(denisacostaq@gmail.com): change to be based on exceptions
+        if (Objects.isNull(temp)) {
+            updateStatus(ThingStatus.OFFLINE);
+        } else {
+            // TODO(denisacostaq@gmail.com): optimize querying the current status
+            updateStatus(ThingStatus.ONLINE);
+            updateState(channelUID.getId(), new DecimalType(temp));
+        }
+    }
+
+    private void setRealFeelTemperature(ChannelUID channelUID, @Nullable Float temp) {
+        // TODO(denisacostaq@gmail.com): change to be based on exceptions
+        if (Objects.isNull(temp)) {
+            updateStatus(ThingStatus.OFFLINE);
+        } else {
+            // TODO(denisacostaq@gmail.com): optimize querying the current status
+            updateStatus(ThingStatus.ONLINE);
+            updateState(channelUID.getId(), new DecimalType(temp));
+        }
+    }
+
+    private void setRealFeelTemperatureShade(ChannelUID channelUID, @Nullable Float temp) {
         // TODO(denisacostaq@gmail.com): change to be based on exceptions
         if (Objects.isNull(temp)) {
             updateStatus(ThingStatus.OFFLINE);
