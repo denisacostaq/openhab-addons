@@ -24,6 +24,7 @@ import com.google.gson.annotations.SerializedName;
  */
 public class CurrentConditions {
     // TODO(denisacostaq@gmail.com): remove annotation and check error handling
+    // https://json2csharp.com/json-to-pojo
     @SerializedName(value = "LocalObservationDateTime")
     public Date localObservationDateTime;
     public int epochTime;
@@ -36,6 +37,51 @@ public class CurrentConditions {
     public boolean isDayTime;
     @SerializedName(value = "Temperature")
     public Temperature temperature;
+    @SerializedName(value = "RealFeelTemperature")
+    public RealFeelTemperature realFeelTemperature;
+    @SerializedName(value = "RealFeelTemperatureShade")
+    public RealFeelTemperatureShade realFeelTemperatureShade;
+    @SerializedName(value = "RelativeHumidity")
+    public int relativeHumidity;
+    @SerializedName(value = "IndoorRelativeHumidity")
+    public int indoorRelativeHumidity;
+    @SerializedName(value = "DewPoint")
+    public DewPoint dewPoint;
+    @SerializedName(value = "Wind")
+    public Wind wind;
+    @SerializedName(value = "WindGust")
+    public WindGust windGust;
+    @SerializedName(value = "UVIndex")
+    public int uVIndex;
+    @SerializedName(value = "UVIndexText")
+    public String uVIndexText;
+    @SerializedName(value = "Visibility")
+    public Visibility visibility;
+    @SerializedName(value = "ObstructionsToVisibility")
+    public String obstructionsToVisibility;
+    @SerializedName(value = "CloudCover")
+    public int cloudCover;
+    @SerializedName(value = "Ceiling")
+    public Ceiling ceiling;
+    @SerializedName(value = "Pressure")
+    public Pressure pressure;
+    @SerializedName(value = "PressureTendency")
+    public PressureTendency pressureTendency;
+    @SerializedName(value = "Past24HourTemperatureDeparture")
+    public Past24HourTemperatureDeparture past24HourTemperatureDeparture;
+    @SerializedName(value = "ApparentTemperature")
+    public ApparentTemperature apparentTemperature;
+    @SerializedName(value = "WindChillTemperature")
+    public WindChillTemperature windChillTemperature;
+    @SerializedName(value = "WetBulbTemperature")
+    public WetBulbTemperature wetBulbTemperature;
+    @SerializedName(value = "Precip1hr")
+    public Precip1hr precip1hr;
+    @SerializedName(value = "PrecipitationSummary")
+    public PrecipitationSummary precipitationSummary;
+    @SerializedName(value = "TemperatureSummary")
+    public TemperatureSummary temperatureSummary;
+    @SerializedName(value = "MobileLink")
     public String mobileLink;
     public String link;
 
