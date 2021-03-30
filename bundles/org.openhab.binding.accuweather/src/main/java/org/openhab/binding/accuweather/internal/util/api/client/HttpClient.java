@@ -103,6 +103,7 @@ public class HttpClient<V extends ExpiringValue<String>, E extends Throwable> im
     }
 
     private V makeHttpGetRequest(String url) throws HttpErrorResponseException, E {
+        logger.warn("url {}", url);
         try {
             ContentResponse resp = client.GET(url);
             List<HttpField> expiresHeader = resp.getHeaders().stream()

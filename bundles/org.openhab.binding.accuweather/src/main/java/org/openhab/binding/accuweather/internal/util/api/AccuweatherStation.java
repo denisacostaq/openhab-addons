@@ -13,7 +13,6 @@
 
 package org.openhab.binding.accuweather.internal.util.api;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -45,60 +44,6 @@ public class AccuweatherStation<HttpRespT, CacheValT, E extends Throwable>
 
     public void setHttpClient(final @Reference AccuweatherHttpApiClient<HttpRespT, CacheValT, E> httpClient) {
         this.httpClient = httpClient;
-    }
-
-    @Override
-    @Nullable
-    public Float getTemperature() throws E {
-        CurrentConditions currentConditions = currentConditions();
-        if (Objects.isNull(currentConditions) || currentConditions.temperature == null
-                || Objects.isNull(currentConditions.temperature.metric)) {
-            return null;
-        }
-        return Double.valueOf(currentConditions.temperature.metric.value).floatValue();
-    }
-
-    @Override
-    @Nullable
-    public Date getCurrentTime() throws E {
-        CurrentConditions currentConditions = currentConditions();
-        return Objects.isNull(currentConditions) ? null : currentConditions.localObservationDateTime;
-    }
-
-    @Override
-    @Nullable // FIXME(denisacostaq@gmail.com): remove this
-    public Float getHumidity() {
-        return null;
-    }
-
-    @Override
-    @Nullable
-    public Boolean hasPrecipitation() throws E {
-        CurrentConditions currentConditions = currentConditions();
-        return currentConditions.hasPrecipitation;
-    }
-
-    @Override
-    public String getPrecipitationType() throws E {
-        if (hasPrecipitation()) {
-            CurrentConditions currentConditions = currentConditions();
-            // TODO(denisacostaq@gmail.com): currentConditions.precipitationType != nul
-            return currentConditions.precipitationType.toString();
-        } else {
-            return "None"; // TODO(denisacostaq@gmail.com): named var
-        }
-    }
-
-    @Override
-    public String getWeatherText() throws E {
-        CurrentConditions currentConditions = currentConditions();
-        return currentConditions.weatherText;
-    }
-
-    @Override
-    public @Nullable Integer getWeatherIcon() throws E {
-        CurrentConditions currentConditions = currentConditions();
-        return currentConditions.weatherIcon;
     }
 
     @Override
@@ -143,7 +88,8 @@ public class AccuweatherStation<HttpRespT, CacheValT, E extends Throwable>
     }
 
     @Nullable // FIXME(denisacostaq@gmail.com): remove
-    private CurrentConditions currentConditions() throws E {
+    @Override
+    public CurrentConditions currentConditions() throws E {
         return httpClient.currentConditions(new CitySearchResult(this.cityKey, cityName));
     }
 }

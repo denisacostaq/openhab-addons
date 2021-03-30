@@ -12,18 +12,18 @@
  */
 package org.openhab.binding.accuweather.internal.handler;
 
-import java.util.Date;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import javax.validation.constraints.NotNull;
 
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
 import org.openhab.binding.accuweather.internal.interfaces.WeatherStation;
+import org.openhab.binding.accuweather.internal.model.pojo.CurrentConditions;
 import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,11 +54,14 @@ public class AccuweatherDataSource {
      * Start the event listener for the Ambient Weather real-time API
      */
     @NotNull
-    public ScheduledFuture<?> start(BiConsumer<@Nullable Float, @Nullable Date> callback, Command cancel) {
+    public ScheduledFuture<?> start(Consumer<@NonNull CurrentConditions> callback, Command cancel) {
         logger.debug("AccuweatherClient: Start pooling");
         return this.scheduler.scheduleAtFixedRate(() -> {
             try {
-                callback.accept(weatherStation.getTemperature(), weatherStation.getCurrentTime());
+                CurrentConditions cc = weatherStation.currentConditions();
+                if (cc != null) {
+                    callback.accept(cc);
+                }
             } catch (Throwable exc) {
                 // FIXME(denisacostaq@gmail.com): no cast
                 RemoteErrorResponseException e = (RemoteErrorResponseException) exc;

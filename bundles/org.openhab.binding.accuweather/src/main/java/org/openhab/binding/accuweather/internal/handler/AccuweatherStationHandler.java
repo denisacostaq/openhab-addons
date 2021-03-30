@@ -28,15 +28,17 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.accuweather.internal.config.AccuweatherStationConfiguration;
 import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
 import org.openhab.binding.accuweather.internal.interfaces.WeatherStation;
+import org.openhab.binding.accuweather.internal.model.mapper.ModelTranslator;
+import org.openhab.binding.accuweather.internal.model.view.CurrentConditions;
 import org.openhab.binding.accuweather.internal.util.api.AccuweatherStation;
 import org.openhab.core.library.types.DateTimeType;
 import org.openhab.core.library.types.DecimalType;
-import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.*;
 import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
+import org.openhab.core.types.State;
 import org.openhab.core.types.UnDefType;
 import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
@@ -83,11 +85,17 @@ public class AccuweatherStationHandler<HttpRespT, CacheValT, E extends Throwable
         this.cancelPoolingJob();
     }
 
+    private CurrentConditions getCurrentConditions() throws Throwable {
+        org.openhab.binding.accuweather.internal.model.pojo.CurrentConditions cc = weatherStation.currentConditions();
+        return ModelTranslator.currentConditions(cc);
+    }
+
     private void refreshChanel(ChannelUID channelUID) {
         switch (channelUID.getIdWithoutGroup()) {
             case CH_TEMPERATURE:
                 try {
-                    setTemperature(channelUID, weatherStation.getTemperature());
+                    CurrentConditions currentConditions = getCurrentConditions();
+                    setChannelValue(channelUID, currentConditions.getTemperature());
                 } catch (Throwable exc) {
                     // FIXME(denisacostaq@gmail.com): no cast
                     RemoteErrorResponseException e = (RemoteErrorResponseException) exc;
@@ -98,7 +106,8 @@ public class AccuweatherStationHandler<HttpRespT, CacheValT, E extends Throwable
                 break;
             case CH_OBSERVATION_TIME:
                 try {
-                    setObservationTime(channelUID, weatherStation.getCurrentTime());
+                    CurrentConditions currentConditions = getCurrentConditions();
+                    setChannelValue(channelUID, currentConditions.getLocalObservationDateTime());
                 } catch (Throwable exc) {
                     // FIXME(denisacostaq@gmail.com): no cast
                     E e = (E) exc;
@@ -109,7 +118,8 @@ public class AccuweatherStationHandler<HttpRespT, CacheValT, E extends Throwable
                 break;
             case CH_PRECIPITATION_TYPE:
                 try {
-                    setPrecipitationType(channelUID, weatherStation.getPrecipitationType());
+                    CurrentConditions currentConditions = getCurrentConditions();
+                    setChannelValue(channelUID, currentConditions.getPrecipitationType());
                 } catch (Throwable exc) {
                     // FIXME(denisacostaq@gmail.com): no cast
                     E e = (E) exc;
@@ -120,7 +130,8 @@ public class AccuweatherStationHandler<HttpRespT, CacheValT, E extends Throwable
                 break;
             case CH_WEATHER_TEXT:
                 try {
-                    setWeatherText(channelUID, weatherStation.getWeatherText());
+                    CurrentConditions currentConditions = getCurrentConditions();
+                    setChannelValue(channelUID, currentConditions.getWeatherText());
                 } catch (Throwable exc) {
                     // FIXME(denisacostaq@gmail.com): no cast
                     E e = (E) exc;
@@ -131,7 +142,8 @@ public class AccuweatherStationHandler<HttpRespT, CacheValT, E extends Throwable
                 break;
             case CH_WEATHER_ICON:
                 try {
-                    setWeatherIcon(channelUID, weatherStation.getWeatherIcon());
+                    CurrentConditions currentConditions = getCurrentConditions();
+                    setChannelValue(channelUID, currentConditions.getWeatherIcon());
                 } catch (Throwable exc) {
                     // FIXME(denisacostaq@gmail.com): no cast
                     E e = (E) exc;
@@ -177,7 +189,8 @@ public class AccuweatherStationHandler<HttpRespT, CacheValT, E extends Throwable
                         ((AccuweatherBridgeHandler) (getBridge().getHandler())).getAccuweatherHttpApiClient());
                 if (weatherStation.verifyStationConfigParams(countryCode, adminCode, cityName)) {
                     updateStatus(ThingStatus.ONLINE);
-                    poolingJob = new AccuweatherDataSource(scheduler, weatherStation).start((temp, date) -> {
+                    poolingJob = new AccuweatherDataSource(scheduler, weatherStation).start((data) -> {
+                        CurrentConditions currentConditions = ModelTranslator.currentConditions(data);
                         ChannelUID chTemp = new ChannelUID(this.getThing().getUID(), CHG_CURRENT, CH_TEMPERATURE);
                         ChannelUID chRfTemp = new ChannelUID(this.getThing().getUID(), CHG_CURRENT,
                                 CH_REAL_FEEL_TEMPERATURE);
@@ -189,15 +202,13 @@ public class AccuweatherStationHandler<HttpRespT, CacheValT, E extends Throwable
                         ChannelUID wtrTxt = new ChannelUID(this.getThing().getUID(), CHG_CURRENT, CH_WEATHER_TEXT);
                         final ChannelUID wtrIcon = new ChannelUID(this.getThing().getUID(), CHG_CURRENT,
                                 CH_WEATHER_ICON);
-                        setTemperature(chTemp, temp);
-                        setTemperature(chRfTemp, temp + 1);
-                        setTemperature(chRfTempShade, temp + 2);
-                        setObservationTime(chDate, date);
-                        setPrecipitationType(chPres, "chPres");
-                        setWeatherText(wtrTxt, Arrays
-                                .asList("Este texto ex random 1", "Este texto ex random 2", "Este texto ex random 3")
-                                .get(new Random().nextInt(3)));
-                        setWeatherIcon(wtrIcon, 1);
+                        setChannelValue(chTemp, currentConditions.getTemperature());
+                        setChannelValue(chRfTemp, currentConditions.getRealFeelTemperature());
+                        setChannelValue(chRfTempShade, currentConditions.getRealFeelTemperatureShade());
+                        setChannelValue(chDate, currentConditions.getLocalObservationDateTime());
+                        setChannelValue(chPres, currentConditions.getPrecipitationType());
+                        setWeatherText(wtrTxt, currentConditions.getWeatherText());
+                        setChannelValue(wtrIcon, currentConditions.getWeatherIcon());
                     }, () -> {
                         this.cancelPoolingJob();
                     });
@@ -264,62 +275,34 @@ public class AccuweatherStationHandler<HttpRespT, CacheValT, E extends Throwable
         return true;
     }
 
-    private void setTemperature(ChannelUID channelUID, @Nullable Float temp) {
-        // TODO(denisacostaq@gmail.com): change to be based on exceptions
-        if (Objects.isNull(temp)) {
-            updateStatus(ThingStatus.OFFLINE);
+    private void setChannelValue(ChannelUID channelUID, @Nullable Float val) {
+        State state = Objects.isNull(val) ? null : new DecimalType(val);
+        setChannelValue(channelUID, state);
+    }
+
+    private void setChannelValue(ChannelUID channelUID, @Nullable Integer val) {
+        State state = Objects.isNull(val) ? null : new DecimalType(val);
+        setChannelValue(channelUID, state);
+    }
+
+    private void setChannelValue(ChannelUID channelUID, @Nullable State state) {
+        if (!Objects.isNull(state)) {
+            updateState(channelUID.getId(), state);
         } else {
-            // TODO(denisacostaq@gmail.com): optimize querying the current status
-            updateStatus(ThingStatus.ONLINE);
-            updateState(channelUID.getId(), new DecimalType(temp));
+            updateState(channelUID.getId(), UnDefType.NULL);
         }
     }
 
-    private void setRealFeelTemperature(ChannelUID channelUID, @Nullable Float temp) {
-        // TODO(denisacostaq@gmail.com): change to be based on exceptions
-        if (Objects.isNull(temp)) {
-            updateStatus(ThingStatus.OFFLINE);
-        } else {
-            // TODO(denisacostaq@gmail.com): optimize querying the current status
-            updateStatus(ThingStatus.ONLINE);
-            updateState(channelUID.getId(), new DecimalType(temp));
-        }
+    private void setChannelValue(ChannelUID channelUID, @Nullable Date date) {
+        State state = Objects.isNull(date) ? null
+                : new DateTimeType(ZonedDateTime.ofInstant(date.toInstant(), ZoneOffset.UTC)
+                        .withZoneSameInstant(ZoneId.systemDefault()));
+        setChannelValue(channelUID, state);
     }
 
-    private void setRealFeelTemperatureShade(ChannelUID channelUID, @Nullable Float temp) {
-        // TODO(denisacostaq@gmail.com): change to be based on exceptions
-        if (Objects.isNull(temp)) {
-            updateStatus(ThingStatus.OFFLINE);
-        } else {
-            // TODO(denisacostaq@gmail.com): optimize querying the current status
-            updateStatus(ThingStatus.ONLINE);
-            updateState(channelUID.getId(), new DecimalType(temp));
-        }
-    }
-
-    private void setObservationTime(ChannelUID channelUID, @Nullable Date date) {
-        // TODO(denisacostaq@gmail.com): change to be based on exceptions
-        if (Objects.isNull(date)) {
-            updateStatus(ThingStatus.OFFLINE);
-        } else {
-            DateTimeType dateTimeType = new DateTimeType(ZonedDateTime.ofInstant(date.toInstant(), ZoneOffset.UTC)
-                    .withZoneSameInstant(ZoneId.systemDefault()));
-            updateState(channelUID.getId(), dateTimeType);
-        }
-    }
-
-    private void setPrecipitationType(ChannelUID channelUID, String precipitationType) {
-        // TODO(denisacostaq@gmail.com): change to be based on exceptions
-        List<OnOffType> states = Arrays.asList(OnOffType.ON, OnOffType.OFF);
-        OnOffType s = states.get(new Random().nextInt(2));
-        // FIXME never is null
-        if (Objects.isNull(precipitationType)) {
-            updateStatus(ThingStatus.OFFLINE);
-        } else {
-            logger.warn("updateState(channelUID.getId(), new StringType(precipitationType)) {}, {}", channelUID.getId(),
-                    s.toString());
-            updateState(channelUID.getId(), s);
-            // updateState(channelUID.getId(), new StringType(s.toString()));
+    private void setChannelValue(ChannelUID channelUID, @Nullable String val) {
+        if (!StringUtils.isBlank(val)) {
+            updateState(channelUID.getId(), new StringType(val));
         }
     }
 
@@ -327,21 +310,6 @@ public class AccuweatherStationHandler<HttpRespT, CacheValT, E extends Throwable
         logger.warn("updateState(channelUID.getId(), new StringType(weatherText)) {}, {}", channelUID.getId(),
                 weatherText);
         updateState(channelUID.getId(), StringType.valueOf(weatherText));
-    }
-
-    private void setWeatherIcon(ChannelUID channelUID, @Nullable Integer weatherIcon) {
-        // FIXME never is null
-        weatherIcon = new Random().nextInt(8) + 1;
-        if (weatherIcon == 3) {
-            weatherIcon = null;
-        }
-        logger.warn("updateState(channelUID.getId(), new StringType(weatherIcon)) {}, {}", channelUID.getId(),
-                weatherIcon);
-        if (Objects.isNull(weatherIcon)) {
-            updateState(channelUID.getId(), UnDefType.UNDEF);
-        } else {
-            updateState(channelUID.getId(), new DecimalType(weatherIcon));
-        }
     }
 
     public void setThingOfflineWithCommError(@Nullable String statusDescription) {

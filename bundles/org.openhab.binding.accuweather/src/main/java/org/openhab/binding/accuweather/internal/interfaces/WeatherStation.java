@@ -13,10 +13,9 @@
 
 package org.openhab.binding.accuweather.internal.interfaces;
 
-import java.util.Date;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.accuweather.internal.model.pojo.CurrentConditions;
 
 /**
  * The {@link WeatherStation} is the specification to get weather condition values from a station
@@ -25,34 +24,8 @@ import org.eclipse.jdt.annotation.Nullable;
  */
 @NonNullByDefault
 public interface WeatherStation<HttpRespT, CacheValT, E extends Throwable> {
-    /**
-     * @return the temperature in the station
-     */
-    // FIXME(denisacostaq@gmail.com): should include scale, like for example celcious, fahrenheit
     @Nullable
-    Float getTemperature() throws E;
-
-    /**
-     * @return the humidity in the station
-     */
-    @Nullable
-    Float getHumidity();
-
-    /**
-     * @return the current time in the station
-     */
-    @Nullable
-    Date getCurrentTime() throws E;
-
-    @Nullable
-    Boolean hasPrecipitation() throws E;
-
-    String getPrecipitationType() throws E;
-
-    String getWeatherText() throws E;
-
-    @Nullable
-    Integer getWeatherIcon() throws E;
+    CurrentConditions currentConditions() throws E;
 
     boolean verifyStationConfigParams(String countryCode, Integer adminCode, String cityName) throws E;
 }
