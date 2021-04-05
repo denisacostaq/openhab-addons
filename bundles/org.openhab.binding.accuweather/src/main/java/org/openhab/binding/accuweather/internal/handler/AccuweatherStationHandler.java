@@ -85,72 +85,37 @@ public class AccuweatherStationHandler<HttpRespT, CacheValT, E extends Throwable
         this.cancelPoolingJob();
     }
 
-    private CurrentConditions getCurrentConditions() throws Throwable {
-        org.openhab.binding.accuweather.internal.model.pojo.CurrentConditions cc = weatherStation.currentConditions();
-        return ModelTranslator.currentConditions(cc);
+    private CurrentConditions getCurrentConditions() {
+        org.openhab.binding.accuweather.internal.model.pojo.CurrentConditions currentConditions = null;
+        try {
+            currentConditions = weatherStation.currentConditions();
+        } catch (Throwable exc) {
+            // FIXME(denisacostaq@gmail.com): no cast
+            RemoteErrorResponseException e = (RemoteErrorResponseException) exc;
+            // TODO(denisacostaq@gmail.com):
+            // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+            logger.warn("unable to get current conditions, details: {}", e.getMessage());
+        }
+        return ModelTranslator.currentConditions(currentConditions);
     }
 
     private void refreshChanel(ChannelUID channelUID) {
+        CurrentConditions currentConditions = getCurrentConditions();
         switch (channelUID.getIdWithoutGroup()) {
             case CH_TEMPERATURE:
-                try {
-                    CurrentConditions currentConditions = getCurrentConditions();
-                    setChannelValue(channelUID, currentConditions.getTemperature());
-                } catch (Throwable exc) {
-                    // FIXME(denisacostaq@gmail.com): no cast
-                    RemoteErrorResponseException e = (RemoteErrorResponseException) exc;
-                    // TODO(denisacostaq@gmail.com):
-                    // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                    logger.warn("unable to get temperature, details: {}", e.getMessage());
-                }
+                setChannelValue(channelUID, currentConditions.getTemperature());
                 break;
             case CH_OBSERVATION_TIME:
-                try {
-                    CurrentConditions currentConditions = getCurrentConditions();
-                    setChannelValue(channelUID, currentConditions.getLocalObservationDateTime());
-                } catch (Throwable exc) {
-                    // FIXME(denisacostaq@gmail.com): no cast
-                    E e = (E) exc;
-                    // TODO(denisacostaq@gmail.com):
-                    // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                    logger.warn("unable to get temperature, details: {}", e.getMessage());
-                }
+                setChannelValue(channelUID, currentConditions.getLocalObservationDateTime());
                 break;
             case CH_PRECIPITATION_TYPE:
-                try {
-                    CurrentConditions currentConditions = getCurrentConditions();
-                    setChannelValue(channelUID, currentConditions.getPrecipitationType());
-                } catch (Throwable exc) {
-                    // FIXME(denisacostaq@gmail.com): no cast
-                    E e = (E) exc;
-                    // TODO(denisacostaq@gmail.com):
-                    // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                    logger.warn("unable to get precipitation type, details: {}", e.getMessage());
-                }
+                setChannelValue(channelUID, currentConditions.getPrecipitationType());
                 break;
             case CH_WEATHER_TEXT:
-                try {
-                    CurrentConditions currentConditions = getCurrentConditions();
-                    setChannelValue(channelUID, currentConditions.getWeatherText());
-                } catch (Throwable exc) {
-                    // FIXME(denisacostaq@gmail.com): no cast
-                    E e = (E) exc;
-                    // TODO(denisacostaq@gmail.com):
-                    // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                    logger.warn("unable to get precipitation type, details: {}", e.getMessage());
-                }
+                setChannelValue(channelUID, currentConditions.getWeatherText());
                 break;
             case CH_WEATHER_ICON:
-                try {
-                    CurrentConditions currentConditions = getCurrentConditions();
-                    setChannelValue(channelUID, currentConditions.getWeatherIcon());
-                } catch (Throwable exc) {
-                    // FIXME(denisacostaq@gmail.com): no cast
-                    E e = (E) exc;
-                    // TODO(denisacostaq@gmail.com):
-                    // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                    logger.warn("unable to get precipitation type, details: {}", e.getMessage());
-                }
+                setChannelValue(channelUID, currentConditions.getWeatherIcon());
                 break;
             default:
                 logger.trace("channel UID {} not handled in refresh", channelUID.toString());
@@ -189,26 +154,8 @@ public class AccuweatherStationHandler<HttpRespT, CacheValT, E extends Throwable
                         ((AccuweatherBridgeHandler) (getBridge().getHandler())).getAccuweatherHttpApiClient());
                 if (weatherStation.verifyStationConfigParams(countryCode, adminCode, cityName)) {
                     updateStatus(ThingStatus.ONLINE);
-                    poolingJob = new AccuweatherDataSource(scheduler, weatherStation).start((data) -> {
-                        CurrentConditions currentConditions = ModelTranslator.currentConditions(data);
-                        ChannelUID chTemp = new ChannelUID(this.getThing().getUID(), CHG_CURRENT, CH_TEMPERATURE);
-                        ChannelUID chRfTemp = new ChannelUID(this.getThing().getUID(), CHG_CURRENT,
-                                CH_REAL_FEEL_TEMPERATURE);
-                        ChannelUID chRfTempShade = new ChannelUID(this.getThing().getUID(), CHG_CURRENT,
-                                CH_REAL_FEEL_TEMPERATURE_SHADE);
-                        ChannelUID chDate = new ChannelUID(this.getThing().getUID(), CHG_CURRENT, CH_OBSERVATION_TIME);
-                        ChannelUID chPres = new ChannelUID(this.getThing().getUID(), CHG_CURRENT,
-                                CH_PRECIPITATION_TYPE);
-                        ChannelUID wtrTxt = new ChannelUID(this.getThing().getUID(), CHG_CURRENT, CH_WEATHER_TEXT);
-                        final ChannelUID wtrIcon = new ChannelUID(this.getThing().getUID(), CHG_CURRENT,
-                                CH_WEATHER_ICON);
-                        setChannelValue(chTemp, currentConditions.getTemperature());
-                        setChannelValue(chRfTemp, currentConditions.getRealFeelTemperature());
-                        setChannelValue(chRfTempShade, currentConditions.getRealFeelTemperatureShade());
-                        setChannelValue(chDate, currentConditions.getLocalObservationDateTime());
-                        setChannelValue(chPres, currentConditions.getPrecipitationType());
-                        setWeatherText(wtrTxt, currentConditions.getWeatherText());
-                        setChannelValue(wtrIcon, currentConditions.getWeatherIcon());
+                    poolingJob = new AccuweatherDataSource(scheduler, weatherStation).start((currentConditions) -> {
+                       updateAllChannels(currentConditions);
                     }, () -> {
                         this.cancelPoolingJob();
                     });
@@ -232,6 +179,23 @@ public class AccuweatherStationHandler<HttpRespT, CacheValT, E extends Throwable
                 }
             }
         }, delay.toMillis(), TimeUnit.MILLISECONDS);
+    }
+
+    private void updateAllChannels(CurrentConditions currentConditions) {
+        setChannelValue(new ChannelUID(this.getThing().getUID(), CHG_CURRENT, CH_TEMPERATURE),
+                currentConditions.getTemperature());
+        setChannelValue(new ChannelUID(this.getThing().getUID(), CHG_CURRENT,CH_REAL_FEEL_TEMPERATURE),
+                currentConditions.getRealFeelTemperature());
+        setChannelValue(new ChannelUID(this.getThing().getUID(), CHG_CURRENT, CH_REAL_FEEL_TEMPERATURE_SHADE),
+                currentConditions.getRealFeelTemperatureShade());
+        setChannelValue(new ChannelUID(this.getThing().getUID(), CHG_CURRENT, CH_OBSERVATION_TIME),
+                currentConditions.getLocalObservationDateTime());
+        setChannelValue(new ChannelUID(this.getThing().getUID(), CHG_CURRENT, CH_PRECIPITATION_TYPE),
+                currentConditions.getPrecipitationType());
+        setWeatherText(new ChannelUID(this.getThing().getUID(), CHG_CURRENT, CH_WEATHER_TEXT),
+                currentConditions.getWeatherText());
+        setChannelValue(new ChannelUID(this.getThing().getUID(), CHG_CURRENT, CH_WEATHER_ICON),
+                currentConditions.getWeatherIcon());
     }
 
     private void cancelPoolingJob() {

@@ -23,6 +23,7 @@ import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.accuweather.internal.exceptions.RemoteErrorResponseException;
 import org.openhab.binding.accuweather.internal.interfaces.WeatherStation;
+import org.openhab.binding.accuweather.internal.model.mapper.ModelTranslator;
 import org.openhab.binding.accuweather.internal.model.pojo.CurrentConditions;
 import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
@@ -54,13 +55,13 @@ public class AccuweatherDataSource {
      * Start the event listener for the Ambient Weather real-time API
      */
     @NotNull
-    public ScheduledFuture<?> start(Consumer<@NonNull CurrentConditions> callback, Command cancel) {
+    public ScheduledFuture<?> start(Consumer<org.openhab.binding.accuweather.internal.model.view.CurrentConditions> callback, Command cancel) {
         logger.debug("AccuweatherClient: Start pooling");
         return this.scheduler.scheduleAtFixedRate(() -> {
             try {
                 CurrentConditions cc = weatherStation.currentConditions();
                 if (cc != null) {
-                    callback.accept(cc);
+                    callback.accept(ModelTranslator.currentConditions(cc));
                 }
             } catch (Throwable exc) {
                 // FIXME(denisacostaq@gmail.com): no cast
